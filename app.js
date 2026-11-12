@@ -19,7 +19,7 @@
     {
       id: 0,
       era: 'Stage 01 · The Genesis',
-      title: 'The River: NSFAS to R5k',
+      title: 'The River: NSFAS to 5k per month',
       sub: 'From broke on the 10th of the month to a consistent R5,000/mo online',
       cta: 'Explore The River',
       target: 'subpage-0',
@@ -77,10 +77,10 @@
   const SEATS_PER_ROW = 5;
 
   const ROW_METRICS = {
-    A: { dist: 6.0, fov: 78, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Direct live engagement with instructors' },
-    B: { dist: 7.5, fov: 68, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Optimal focal axis for live review sessions' },
-    C: { dist: 9.0, fov: 60, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Balanced perspective for masterclass breakdowns' },
-    D: { dist: 10.5, fov: 54, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Full overview & active cohort participation' }
+    A: { dist: 6.0, fov: 78, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Direct live engagement with instructors' },
+    B: { dist: 7.5, fov: 68, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Optimal focal axis for live review sessions' },
+    C: { dist: 9.0, fov: 60, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Balanced perspective for masterclass breakdowns' },
+    D: { dist: 10.5, fov: 54, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Full overview & active cohort participation' }
   };
 
   const SEAT_LATERAL_OFFSETS = [
@@ -970,7 +970,7 @@
     });
 
     if (state.selectedRow && state.selectedSeat) {
-      const metrics = ROW_METRICS[state.selectedRow] || { price: 497 };
+      const metrics = ROW_METRICS[state.selectedRow] || { price: 499 };
       elBarSeatLabel.textContent = `Spot ${state.selectedRow}${state.selectedSeat}`;
       elBarPriceLabel.textContent = `R${metrics.price.toLocaleString('en-ZA')}`;
       elBtnContinue.disabled = false;
@@ -1020,7 +1020,7 @@
 
     const rowLetter = state.selectedRow;
     const seatNum = state.selectedSeat;
-    const rMeta = ROW_METRICS[rowLetter] || { price: 497, type: 'Cohort 01 Pass' };
+    const rMeta = ROW_METRICS[rowLetter] || { price: 499, type: 'Cohort 01 Pass' };
 
     if (elDrawerZoneBadge) {
       elDrawerZoneBadge.textContent = 'COHORT 01 · 20 CAPPED SPOTS';
@@ -1979,7 +1979,7 @@
     if (elBtnDoneSpecs) elBtnDoneSpecs.addEventListener('click', closeSpecs);
 
     const openTicket = () => {
-      const rMeta = ROW_METRICS[state.selectedRow] || { price: 497 };
+      const rMeta = ROW_METRICS[state.selectedRow] || { price: 499 };
       elTShowtime.textContent = `${state.currentCohort}`;
       elTSeat.textContent = `Cohort 01 · Spot ${state.selectedRow}${state.selectedSeat}`;
       elTZone.textContent = 'STANDARD COHORT PASS';
