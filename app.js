@@ -200,6 +200,55 @@
   const elAmbientAudioBtn = document.getElementById('ambient-audio-btn');
 
   // ==========================================================================
+  // THEME MANAGER (DARK / LIGHT MODE TOGGLE)
+  // ==========================================================================
+  function applyTheme(theme) {
+    state.theme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    document.documentElement.classList.remove('dark-theme', 'light-theme');
+    document.documentElement.classList.add(`${theme}-theme`);
+    document.body.classList.remove('dark-theme', 'light-theme');
+    document.body.classList.add(`${theme}-theme`);
+
+    try {
+      localStorage.setItem('first_step_theme', theme);
+    } catch (e) {}
+
+    updateThemeToggleButtonsUI();
+    if (typeof updateScrubberUI === 'function') {
+      updateScrubberUI();
+    }
+  }
+
+  function toggleTheme() {
+    const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+  }
+
+  function updateThemeToggleButtonsUI() {
+    const isDark = state.theme === 'dark';
+    const buttons = document.querySelectorAll('[data-theme-toggle]');
+    buttons.forEach((btn) => {
+      btn.setAttribute('aria-checked', isDark ? 'true' : 'false');
+      btn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+      btn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+    });
+  }
+
+  function initTheme() {
+    applyTheme(state.theme);
+    document.addEventListener('click', (e) => {
+      const toggleBtn = e.target.closest('[data-theme-toggle]');
+      if (toggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleTheme();
+      }
+    });
+  }
+
+  // ==========================================================================
   // 1. PAGE NAVIGATION MANAGER (PLANET HUB <-> SUBPAGES <-> SEATS)
   // ==========================================================================
   function switchView(viewName) {
@@ -1965,6 +2014,7 @@
   // 8. MASTER INITIALIZATION
   // ==========================================================================
   function init() {
+    initTheme();
     initPageRouting();
     initPlanetThreeJS();
     initScrubberDial();

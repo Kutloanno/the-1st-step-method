@@ -97,6 +97,77 @@ html, body {
   position: fixed;
 }
 
+/* ==========================================================================
+   THEME TOGGLE BUTTON COMPONENT (TOP-LEFT OF EVERY SCREEN)
+   ========================================================================== */
+.theme-toggle-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 52px;
+  height: 28px;
+  padding: 3px 4px;
+  border-radius: 999px;
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur-pill);
+  -webkit-backdrop-filter: var(--glass-blur-pill);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular), 0 2px 8px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s var(--apple-spring);
+  flex-shrink: 0;
+  z-index: 25;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--glass-bg-base);
+  box-shadow: var(--glass-specular), 0 4px 14px rgba(0, 0, 0, 0.08);
+  transform: scale(1.05);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+.theme-icon {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: color 0.25s ease, opacity 0.25s ease;
+}
+
+.icon-sun {
+  color: #d97706; /* warm amber sun in light mode */
+  opacity: 1;
+}
+
+.icon-moon {
+  color: #9ca3af; /* muted moon in light mode */
+  opacity: 0.6;
+}
+
+.toggle-indicator {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.15);
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease, box-shadow 0.25s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
 /* Nav Left Wrappers */
 .subpage-nav-left,
 .nav-header-left,
