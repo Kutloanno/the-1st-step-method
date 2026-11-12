@@ -13,7 +13,7 @@
   <!-- Stylesheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="theme-studio">
+<body>
 
   <!-- ==========================================================================
        VIEW 1: 3D PLANETARY SCRUBBER MAIN LANDING PAGE (WHITE STUDIO HUB)
@@ -25,7 +25,6 @@
         <a href="#planet" class="studio-logo" id="studio-logo-link">
           <span class="logo-dot"></span>
           <span class="logo-title">THE 1ST STEP METHOD</span>
-          <span class="logo-badge">COHORT 04 · JAY & KUTLOANO</span>
         </a>
       </div>
 
@@ -43,7 +42,7 @@
           <span class="btn-text-full">Claim Your Seat</span>
           <span class="btn-text-short">Claim</span>
           <span class="btn-arrow">→</span>
-          <span class="spots-left-tag">42 Left</span>
+          <span class="spots-left-tag">13 Left</span>
         </button>
       </div>
     </header>
@@ -95,14 +94,17 @@
   <div class="view-layer view-course-pages" id="view-course-pages">
     <!-- Subpage Sticky Header -->
     <header class="course-page-nav">
-      <button class="subpage-back-btn" id="btn-back-to-planets" aria-label="Back to Planet Scrubber">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        <span class="btn-text-full">Back to Planet Scrubber</span>
-        <span class="btn-text-short">Hub</span>
-      </button>
+      <div class="subpage-nav-left">
+
+        <button class="subpage-back-btn" id="btn-back-to-planets" aria-label="Back to Planet Scrubber">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span class="btn-text-full">Back to Planet Scrubber</span>
+          <span class="btn-text-short">Hub</span>
+        </button>
+      </div>
 
       <div class="subpage-tab-pills" id="subpage-tabs-bar">
         <button class="subpage-tab active" data-page="0">The River</button>
@@ -315,7 +317,7 @@
 
         <div class="page-footer-cta">
           <button class="primary-hero-btn" data-action="go-to-seats">
-            <span>Lock In Your Standard or VIP Seat</span>
+            <span>Lock In Your Cohort Spot</span>
             <span>→</span>
           </button>
         </div>
@@ -488,20 +490,12 @@
           </div>
         </div>
 
-        <!-- Testimonials -->
-        <div class="section-divider-title" style="font-size: 13px; font-weight: 800; color: #6b7280; letter-spacing: 0.1em; margin-bottom: 16px;">AUTHENTIC STUDENT STORIES</div>
-        <div class="editorial-grid-3">
-          <div class="testimonial-card">
+        <!-- Testimonial -->
+        <div class="section-divider-title" style="font-size: 13px; font-weight: 800; color: #6b7280; letter-spacing: 0.1em; margin-bottom: 16px;">AUTHENTIC STUDENT STORY</div>
+        <div class="testimonial-single-wrap" style="margin-bottom: 36px;">
+          <div class="testimonial-card featured">
             <div class="t-quote">“I was on NSFAS at res eating dry two-minute noodles and dreading the 10th of every month. In 2 to 3 months of following Jay's roadmap, I made R7,000/month and bought my own groceries and tech.”</div>
             <div class="t-author">— Kutloano M. · Co-Founder & Varsity Student</div>
-          </div>
-          <div class="testimonial-card">
-            <div class="t-quote">“I lost R800 on Aviator before I joined. Jay and Kutloano helped me build my CapCut portfolio in Week 4. By Week 6, I closed two local fitness brands on Instagram for R3,500 each.”</div>
-            <div class="t-author">— Thabo N. · UCT Student (R7,000/mo closed)</div>
-          </div>
-          <div class="testimonial-card">
-            <div class="t-quote">“The DM scripts in Stone 3 are pure gold. I sent 15 applications on LinkedIn and got 4 replies in 48 hours. I'm now making R6,000/month doing short-form video editing between my lectures.”</div>
-            <div class="t-author">— Naledi S. · Wits University (R6,000/mo retainer)</div>
           </div>
         </div>
 
@@ -581,114 +575,6 @@
     </div>
 
     <div class="app-layout">
-      <!-- Desktop Companion Sidebar -->
-      <aside class="desktop-sidebar" aria-label="Cohort Showcase Controls">
-        <div class="sidebar-header">
-          <div class="sidebar-header-top-row">
-            <div class="brand-badge">
-              <span class="brand-pulse"></span>
-              <span>COHORT 04 AUDITORIUM</span>
-            </div>
-            <button class="back-to-theater-btn" id="btn-scroll-to-theater" title="Scroll back up to Theater">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="18 15 12 9 6 15"></polyline>
-              </svg>
-              <span>Back to Theater</span>
-            </button>
-          </div>
-          <h1 class="sidebar-title">The 1st Step Method</h1>
-          <p class="sidebar-subtitle">Hall 3 · 108 Capped Seats · Co-led by Jay & Kutloano</p>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="section-label">SHOWCASE COHORT SPOTS</div>
-          <div class="preset-cards">
-            <!-- Preset 1: B4 -->
-            <button class="preset-card" data-row="B" data-seat="4" id="preset-b4">
-              <div class="preset-card-top">
-                <span class="preset-seat-tag">ROW B · SEAT 4</span>
-                <span class="zone-badge zone-upclose">STANDARD SPOT</span>
-              </div>
-              <div class="preset-metrics">
-                <span class="preset-metric"><strong>6.3 m</strong> stage</span>
-                <span class="preset-divider">·</span>
-                <span class="preset-metric"><strong>86°</strong> FOV</span>
-                <span class="preset-divider">·</span>
-                <span class="preset-metric"><strong>2.2 m</strong> left</span>
-              </div>
-              <div class="preset-desc">Front-row immersion — live UGC editing breakdowns & real-time client pitch reviews.</div>
-            </button>
-
-            <!-- Preset 2: F8 -->
-            <button class="preset-card" data-row="F" data-seat="8" id="preset-f8">
-              <div class="preset-card-top">
-                <span class="preset-seat-tag">ROW F · SEAT 8</span>
-                <span class="zone-badge zone-sweetspot">SWEET SPOT</span>
-              </div>
-              <div class="preset-metrics">
-                <span class="preset-metric"><strong>9.8 m</strong> stage</span>
-                <span class="preset-divider">·</span>
-                <span class="preset-metric"><strong>60°</strong> FOV</span>
-                <span class="preset-divider">·</span>
-                <span class="preset-metric"><strong>0.3 m</strong> right</span>
-              </div>
-              <div class="preset-desc">Acoustic & visual centerline — the reference viewing position for all 4 Stepping Stones.</div>
-            </button>
-
-            <!-- Preset 3: I12 -->
-            <button class="preset-card" data-row="I" data-seat="12" id="preset-i12">
-              <div class="preset-card-top">
-                <span class="preset-seat-tag">ROW I · SEAT 12</span>
-                <span class="zone-badge zone-fullpicture">VIP RECLINER</span>
-              </div>
-              <div class="preset-metrics">
-                <span class="preset-metric"><strong>13.3 m</strong> stage</span>
-                <span class="preset-divider">·</span>
-                <span class="preset-metric"><strong>45°</strong> FOV</span>
-                <span class="preset-divider">·</span>
-                <span class="preset-metric"><strong>3.3 m</strong> right</span>
-              </div>
-              <div class="preset-desc">VIP Mentorship with Jay & Kutloano: private 1-on-1 strategy calls + direct WhatsApp advisory.</div>
-            </button>
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="section-label">AUDITORIUM AMBIENCE & CONTROLS</div>
-          <div class="controls-grid">
-            <button class="audio-toggle-btn" id="ambient-audio-btn" aria-label="Toggle Theater Soundscape">
-              <div class="sound-bars">
-                <span class="bar bar-1"></span>
-                <span class="bar bar-2"></span>
-                <span class="bar bar-3"></span>
-                <span class="bar bar-4"></span>
-              </div>
-              <span class="audio-btn-label">Hall Ambience (Off)</span>
-            </button>
-            
-            <button class="secondary-btn" id="specs-modal-trigger">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-              </svg>
-              <span>Cohort Specs</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="sidebar-footer">
-          <div class="tech-spec-pills">
-            <span class="tech-pill">108 Capped Seats</span>
-            <span class="tech-pill">Live Weekly Calls</span>
-            <span class="tech-pill">VIP Recliners</span>
-          </div>
-          <div class="sidebar-help-text">
-            Drag in 3D to look around (±26° yaw, ±14° pitch). Tap drawer handle to minimize view.
-          </div>
-        </div>
-      </aside>
-
       <!-- Main Mobile Frame Container -->
       <main class="mobile-viewport-shell" id="app-shell">
         <div class="mobile-frame-bezel">
@@ -696,28 +582,27 @@
           <section class="screen-layer screen-2d" id="screen-2d" aria-label="2D Seat Map">
             <!-- Top Navigation Header -->
             <header class="nav-header">
-              <!-- Top Left: Back to Planet Scrubber Hub -->
-              <button class="circular-nav-btn" id="btn-back-2d" title="Back to Planet Scrubber Hub" aria-label="Return to main page">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              
-              <div class="header-titles">
-                <h2 class="hall-brand">Jay & Kutloano · Cohort 04</h2>
-                <span class="hall-sub">Hall 3 · 108 Live Spots (R5k Target)</span>
+              <div class="nav-header-left">
+                <button class="circular-nav-btn" id="btn-back-2d" title="Back to Planet Scrubber Hub" aria-label="Return to main page">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
               </div>
               
-              <button class="circular-nav-btn" id="btn-info" title="Auditorium Information" aria-label="Auditorium specs and pricing">
+              <div class="header-titles">
+                <h2 class="hall-brand">First Step Method Available Spots</h2>
+                <span class="hall-sub">Cohort 01 · 20 Limited Spots · 90-Day R5k Roadmap</span>
+              </div>
+              
+              <button class="circular-nav-btn" id="btn-info" title="Cohort Information" aria-label="Cohort specs and pricing">
                 <span class="info-letter">i</span>
               </button>
             </header>
 
             <!-- Showtime / Cohort Selector Pills -->
             <div class="showtime-bar" role="tablist" aria-label="Cohort schedule options">
-              <button class="showtime-pill" data-time="Cohort 03 (Archived)" role="tab" aria-selected="false">Cohort 03</button>
-              <button class="showtime-pill active" data-time="Cohort 04 (Live Now)" role="tab" aria-selected="true">Cohort 04 (Live)</button>
-              <button class="showtime-pill" data-time="Cohort 05 (Jan 2027)" role="tab" aria-selected="false">Cohort 05 (Jan)</button>
+              <button class="showtime-pill active" data-time="Cohort 01" role="tab" aria-selected="true">Cohort 1</button>
             </div>
 
             <!-- Curved Screen Arc -->
@@ -740,12 +625,12 @@
                 <!-- Curved screen stroke -->
                 <path d="M 10 30 Q 180 -6 350 30" stroke="url(#arcGlow)" stroke-width="2.6" stroke-linecap="round" />
               </svg>
-              <div class="screen-label">M A I N   S T A G E   /   S C R E E N</div>
+              <div class="screen-label">L I V E   C O H O R T   S T A G E</div>
             </div>
 
             <!-- Auditorium Seat Grid -->
             <div class="seat-grid-container" id="seat-grid-container">
-              <!-- 9 Rows (A to I), 12 Seats per row, 2 | 8 | 2 layout with 2 vertical aisle gaps -->
+              <!-- 4 Rows (A to D), 5 Seats per row = 20 Capped Spots -->
               <div class="auditorium-grid" id="auditorium-grid" role="grid" aria-label="Course Cohort Seats">
                 <!-- Dynamically populated via JS -->
               </div>
@@ -760,10 +645,6 @@
               <div class="legend-item">
                 <span class="legend-swatch swatch-taken"></span>
                 <span class="legend-text">Taken</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-swatch swatch-recliner"></span>
-                <span class="legend-text">VIP Recliner</span>
               </div>
               <div class="legend-item">
                 <span class="legend-swatch swatch-selected"></span>
@@ -800,11 +681,13 @@
 
             <!-- Top Floating Bar -->
             <header class="floating-top-bar" id="floating-top-bar">
-              <button class="floating-back-btn" id="btn-back-3d" aria-label="Back to 2D Map">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
+              <div class="floating-nav-left">
+                <button class="floating-back-btn" id="btn-back-3d" aria-label="Back to 2D Map">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+              </div>
 
               <div class="status-pill" id="pov-status-pill">
                 <span class="status-dot"></span>
@@ -840,65 +723,62 @@
                 <!-- Drawer Header Row -->
                 <div class="drawer-header-row">
                   <div class="drawer-header-left">
-                    <div class="drawer-zone-badge" id="drawer-zone-badge">STANDARD SPOT</div>
-                    <h3 class="drawer-seat-title" id="drawer-seat-title">Row B, Seat 4</h3>
-                    <div class="drawer-seat-subtitle" id="drawer-seat-sub">Standard Cohort Pass · R497</div>
+                    <div class="drawer-badge-row">
+                      <div class="drawer-zone-badge" id="drawer-zone-badge">COHORT 01 · ENROLLING</div>
+                      <span class="drawer-seat-pill" id="drawer-seat-pill">Spot B3 Reserved</span>
+                    </div>
+                    <h3 class="drawer-seat-title" id="drawer-seat-title">The 1st Step Method</h3>
+                    <div class="drawer-seat-subtitle" id="drawer-seat-sub">90-Day R5k Roadmap · Live Mentorship by Jay & Kutloano</div>
                   </div>
 
-                  <!-- Mini Auditorium Radar Matrix (80x56px) -->
-                  <div class="mini-auditorium-radar" id="radar-container" title="Seat Radar Position">
-                    <svg class="radar-screen-arc" viewBox="0 0 80 10" fill="none">
-                      <path d="M 4 8 Q 40 1 76 8" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round" />
-                    </svg>
-                    <div class="radar-dot-matrix" id="radar-matrix">
-                      <!-- 9 rows x 12 cols dynamically rendered -->
+                  <div class="drawer-header-right">
+                    <div class="spots-counter-badge">
+                      <span class="spots-counter-dot"></span>
+                      <div class="spots-counter-text">
+                        <span class="spots-count">20</span>
+                        <span class="spots-label">CAPPED SPOTS</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- 3 Sightline Metric Cards -->
+                <!-- 2 Course Metric Cards -->
                 <div class="sightline-metrics-grid">
-                  <!-- Card 1: To Screen -->
+                  <!-- Card 1: Target Income -->
                   <div class="metric-card">
-                    <span class="metric-label">TO STAGE</span>
+                    <span class="metric-label">MONTHLY TARGET</span>
                     <div class="metric-value-row">
-                      <span class="metric-value" id="metric-dist">6.3</span>
-                      <span class="metric-unit">m</span>
+                      <span class="metric-value" id="metric-dist">R5,000</span>
+                      <span class="metric-unit">/mo</span>
                     </div>
-                    <span class="metric-sub" id="metric-dist-sub">Optimal focal depth</span>
+                    <span class="metric-sub" id="metric-dist-sub">Predictable student income</span>
                   </div>
 
-                  <!-- Card 2: Field of View -->
+                  <!-- Card 2: Timeline -->
                   <div class="metric-card">
-                    <span class="metric-label">FIELD OF VIEW</span>
+                    <span class="metric-label">TIMELINE</span>
                     <div class="metric-value-row">
-                      <span class="metric-value" id="metric-fov">86</span>
-                      <span class="metric-unit">°</span>
+                      <span class="metric-value" id="metric-fov">90</span>
+                      <span class="metric-unit" id="metric-fov-unit">days</span>
                     </div>
-                    <span class="metric-sub" id="metric-fov-sub">IMAX Recommended</span>
-                  </div>
-
-                  <!-- Card 3: Offset from Center -->
-                  <div class="metric-card">
-                    <span class="metric-label">LATERAL OFFSET</span>
-                    <div class="metric-value-row">
-                      <span class="metric-value" id="metric-offset">2.2</span>
-                      <span class="metric-unit">m</span>
-                    </div>
-                    <span class="metric-sub" id="metric-offset-dir">left of centre</span>
+                    <span class="metric-sub" id="metric-fov-sub">1–2 hrs/day around lectures</span>
                   </div>
                 </div>
 
-                <!-- Bottom Action Row -->
+                <!-- Deliverable Feature Chips -->
+                <div class="drawer-feature-strip">
+                  <span class="feat-pill">⚡ 4 Stepping Stones</span>
+                  <span class="feat-pill">💬 Discord Community</span>
+                </div>
+
+                <!-- Bottom Action Row (Full Width Big Reserve Spot Button) -->
                 <div class="drawer-actions-row">
-                  <button class="drawer-btn-secondary" id="btn-change-seat">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="15 18 9 12 15 6"></polyline>
+                  <button class="drawer-btn-primary drawer-btn-hero" id="btn-book-seat">
+                    <span id="btn-book-text">Reserve Cohort Spot · R497</span>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
-                    <span>Change seat</span>
-                  </button>
-                  <button class="drawer-btn-primary" id="btn-book-seat">
-                    <span id="btn-book-text">Reserve Spot · R497</span>
                   </button>
                 </div>
               </div>
@@ -915,7 +795,7 @@
       <div class="modal-header">
         <div>
           <span class="brand-badge">COHORT ARCHITECTURE</span>
-          <h2 class="modal-title">Hall 3 & Cohort Specs</h2>
+          <h2 class="modal-title">Cohort Specs</h2>
         </div>
         <button class="modal-close-btn" id="btn-close-specs" aria-label="Close dialog">×</button>
       </div>
@@ -960,24 +840,24 @@
     <div class="ticket-card">
       <div class="ticket-top">
         <div class="ticket-brand">THE 1ST STEP METHOD</div>
-        <div class="ticket-hall-tag">COHORT 04 · PASS</div>
+        <div class="ticket-hall-tag">COHORT 01 · PASS</div>
       </div>
 
-      <div class="ticket-movie-title">COHORT 04 ENROLLMENT CONFIRMATION</div>
+      <div class="ticket-movie-title">COHORT 01 ENROLLMENT CONFIRMATION</div>
       <div class="ticket-movie-sub">The 1st Step 90-Day Roadmap (R5k Target) · Jay & Kutloano</div>
 
       <div class="ticket-details-grid">
         <div class="t-col">
           <span class="t-label">COHORT</span>
-          <span class="t-value" id="t-showtime">Cohort 04 · Live</span>
+          <span class="t-value" id="t-showtime">Cohort 01</span>
         </div>
         <div class="t-col">
-          <span class="t-label">SEAT ASSIGNMENT</span>
-          <span class="t-value highlight" id="t-seat">Row B · Seat 4</span>
+          <span class="t-label">COHORT SPOT</span>
+          <span class="t-value highlight" id="t-seat">Spot B3 Reserved</span>
         </div>
         <div class="t-col">
           <span class="t-label">TIER</span>
-          <span class="t-value" id="t-zone">STANDARD SPOT</span>
+          <span class="t-value" id="t-zone">COHORT PASS</span>
         </div>
         <div class="t-col">
           <span class="t-label">TUITION TOTAL</span>
@@ -986,8 +866,8 @@
       </div>
 
       <div class="ticket-sightline-summary">
-        <span>Auditorium Sightline: </span>
-        <strong id="t-metrics">6.3m distance · 86° FOV</strong>
+        <span>Cohort Access: </span>
+        <strong id="t-metrics">90 Days to R5k/mo · Discord Community Access</strong>
       </div>
 
       <div class="ticket-barcode-wrap">
@@ -996,7 +876,7 @@
           <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
           <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
-        <div class="barcode-number">COHORT04-R5K-HL3</div>
+        <div class="barcode-number">COHORT01-R5K-ROADMAP</div>
       </div>
 
       <div class="ticket-actions">

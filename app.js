@@ -21,7 +21,7 @@
       era: 'Stage 01 · The Genesis',
       title: 'The River: NSFAS to R5k',
       sub: 'From broke on the 10th of the month to a consistent R5,000/mo online',
-      cta: 'Explore The River →',
+      cta: 'Explore The River',
       target: 'subpage-0',
       color: '#e26a2c'
     },
@@ -30,7 +30,7 @@
       era: 'Stage 02 · Protoplanet',
       title: 'The 1st Step Method',
       sub: 'Why traditional courses fail & how our creator stack works',
-      cta: 'Explore The Method →',
+      cta: 'Explore The Method',
       target: 'subpage-1',
       color: '#4b5563'
     },
@@ -39,7 +39,7 @@
       era: 'Stage 03 · Magma Core',
       title: 'Jay & Kutloano',
       sub: 'Meet the varsity founders: R100k+ earned, zero foreign theory',
-      cta: 'Meet The Founders →',
+      cta: 'Meet The Founders',
       target: 'subpage-2',
       color: '#c2410c'
     },
@@ -48,7 +48,7 @@
       era: 'Stage 04 · First Oceans',
       title: 'The 90-Day Roadmap',
       sub: 'The 4 Stepping Stones: UGC, Storefront, Clients & AI Scale',
-      cta: 'Explore The Roadmap →',
+      cta: 'Explore The Roadmap',
       target: 'subpage-3',
       color: '#0d9488'
     },
@@ -57,84 +57,70 @@
       era: 'Stage 05 · Pangaea',
       title: 'Wins & Guarantees',
       sub: 'Real student results, Dinner Party Brag & our R5K zero-risk guarantee',
-      cta: 'Explore Wins & Guarantees →',
+      cta: 'Explore Wins & Guarantees',
       target: 'subpage-4',
       color: '#059669'
     },
     {
       id: 5,
       era: 'Today · Open Enrollment',
-      title: 'Claim Your Seat in 3D',
-      sub: 'Hall 3 Auditorium · 108 Capped Seats · Cohort 04 Live',
-      cta: 'Claim Your Seat in 3D →',
+      title: 'Available Spots in 3D',
+      sub: 'First Step Method Available Spots · 20 Limited Spots',
+      cta: 'Claim Your Spot',
       target: 'seats-page',
       color: '#7ee09b'
     }
   ];
 
-  // Auditorium Row Metrics (108 Capped Cohort Spots)
-  const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-  const SEATS_PER_ROW = 12;
+  // Cohort Row Metrics (20 Capped Spots: 4 Rows x 5 Seats)
+  const ROWS = ['A', 'B', 'C', 'D'];
+  const SEATS_PER_ROW = 5;
 
   const ROW_METRICS = {
-    A: { dist: 5.4, fov: 94, zone: 'STANDARD SPOT', type: 'Standard Cohort Pass', price: 497, desc: 'Maximum front-row immersion for live sessions' },
-    B: { dist: 6.3, fov: 86, zone: 'STANDARD SPOT', type: 'Standard Cohort Pass', price: 497, desc: 'Optimal focal depth with high immersion' },
-    C: { dist: 7.2, fov: 78, zone: 'STANDARD SPOT', type: 'Standard Cohort Pass', price: 497, desc: 'Expansive view with excellent coverage' },
-    D: { dist: 8.1, fov: 71, zone: 'SWEET SPOT', type: 'Standard Cohort Pass', price: 497, desc: 'Acoustic & visual sweet spot entrance' },
-    E: { dist: 8.9, fov: 65, zone: 'SWEET SPOT', type: 'Standard Cohort Pass', price: 497, desc: 'Prime center-hall acoustic harmony' },
-    F: { dist: 9.8, fov: 60, zone: 'SWEET SPOT', type: 'Standard Cohort Pass', price: 497, desc: 'Reference centerline & masterclass focal axis' },
-    G: { dist: 10.7, fov: 55, zone: 'SWEET SPOT', type: 'Standard Cohort Pass', price: 497, desc: 'Comfortable full-stage panorama' },
-    H: { dist: 12.0, fov: 49, zone: 'VIP RECLINER', type: 'VIP Mentorship Pass', price: 1000, desc: 'VIP Recliner + 1-on-1 Mentorship with Jay & Kutloano' },
-    I: { dist: 13.3, fov: 45, zone: 'VIP RECLINER', type: 'VIP Mentorship Pass', price: 1000, desc: 'Panoramic frame overview & VIP advisory access' }
+    A: { dist: 6.0, fov: 78, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Direct live engagement with instructors' },
+    B: { dist: 7.5, fov: 68, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Optimal focal axis for live review sessions' },
+    C: { dist: 9.0, fov: 60, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Balanced perspective for masterclass breakdowns' },
+    D: { dist: 10.5, fov: 54, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 497, desc: 'Full overview & active cohort participation' }
   };
 
   const SEAT_LATERAL_OFFSETS = [
-    { seat: 1,  offset: 3.3, dir: 'left of centre',  sign: -1 },
-    { seat: 2,  offset: 2.9, dir: 'left of centre',  sign: -1 },
-    { seat: 3,  offset: 2.5, dir: 'left of centre',  sign: -1 },
-    { seat: 4,  offset: 2.2, dir: 'left of centre',  sign: -1 },
-    { seat: 5,  offset: 1.5, dir: 'left of centre',  sign: -1 },
-    { seat: 6,  offset: 0.7, dir: 'left of centre',  sign: -1 },
-    { seat: 7,  offset: 0.1, dir: 'left of centre',  sign: -1 },
-    { seat: 8,  offset: 0.3, dir: 'right of centre', sign: 1 },
-    { seat: 9,  offset: 1.1, dir: 'right of centre', sign: 1 },
-    { seat: 10, offset: 1.9, dir: 'right of centre', sign: 1 },
-    { seat: 11, offset: 2.6, dir: 'right of centre', sign: 1 },
-    { seat: 12, offset: 3.3, dir: 'right of centre', sign: 1 }
+    { seat: 1, offset: 2.0, dir: 'left side', sign: -1 },
+    { seat: 2, offset: 1.0, dir: 'left center', sign: -1 },
+    { seat: 3, offset: 0.0, dir: 'centerline', sign: 0 },
+    { seat: 4, offset: 1.0, dir: 'right center', sign: 1 },
+    { seat: 5, offset: 2.0, dir: 'right side', sign: 1 }
   ];
 
   const TAKEN_SEATS = {
-    'Cohort 04 (Live Now)': {
-      A: [5, 6],
-      B: [6, 7, 8],
-      C: [4, 5, 8, 9],
-      D: [3, 6, 7, 10],
-      E: [1, 2, 5, 6, 7, 8],
-      F: [4, 5, 9, 10],
-      G: [6, 7, 11, 12],
-      H: [3, 4, 7, 8],
-      I: [5, 6]
+    'Cohort 01': {
+      A: [2, 4],
+      B: [1, 5],
+      C: [3],
+      D: [2, 4]
     },
-    'Cohort 03 (Archived)': {
-      A: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      B: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      C: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    },
-    'Cohort 05 (Jan 2027)': {
-      A: [1, 2],
-      B: [4, 5],
-      H: [1, 2]
+    'Cohort 1': {
+      A: [2, 4],
+      B: [1, 5],
+      C: [3],
+      D: [2, 4]
     }
   };
 
   // Global Application State
   const state = {
+    theme: (function() {
+      try {
+        const saved = localStorage.getItem('first_step_theme');
+        if (saved === 'dark' || saved === 'light') return saved;
+      } catch (e) {}
+      return 'light';
+    })(),
     currentView: 'planet-hub', // 'planet-hub' | 'course-pages' | 'seats-page'
     currentStageIndex: 0,
     currentSubpageIndex: 0,
-    currentCohort: 'Cohort 04 (Live Now)',
+    currentCohort: 'Cohort 01',
     selectedRow: 'B',
-    selectedSeat: 4,
+    selectedSeat: 3,
     cinemaMode: '2D', // '2D' | '3D'
     transitioning: false,
     drawerMinimized: false,
@@ -222,9 +208,10 @@
 
     [viewPlanetHub, viewCoursePages, viewSeatsPage].forEach(v => v.classList.remove('active'));
 
+    // Re-apply active theme classes across views
+    applyTheme(state.theme);
+
     if (viewName === 'planet-hub') {
-      document.documentElement.className = 'theme-studio';
-      document.body.className = 'theme-studio';
       viewPlanetHub.classList.add('active');
       setTimeout(() => {
         if (planetRenderer && planetCamera && elPlanetCanvasWrap) {
@@ -238,12 +225,8 @@
         }
       }, 50);
     } else if (viewName === 'course-pages') {
-      document.documentElement.className = 'theme-studio';
-      document.body.className = 'theme-studio';
       viewCoursePages.classList.add('active');
     } else if (viewName === 'seats-page') {
-      document.documentElement.className = 'theme-cinema';
-      document.body.className = 'theme-cinema';
       viewSeatsPage.classList.add('active');
       viewSeatsPage.scrollTop = 0;
       // Ensure 2D map is visible and 3D is reset
@@ -731,15 +714,25 @@
 
       if (dist < 0.6) {
         tick.classList.add('center-active');
-        tick.style.backgroundColor = '#111111';
+        tick.style.backgroundColor = state.theme === 'dark' ? '#ffffff' : '#111111';
       } else {
         tick.classList.remove('center-active');
-        if (dist <= 2.5) {
-          tick.style.backgroundColor = '#4b5563';
-        } else if (dist <= 5.0) {
-          tick.style.backgroundColor = '#9ca3af';
+        if (state.theme === 'dark') {
+          if (dist <= 2.5) {
+            tick.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
+          } else if (dist <= 5.0) {
+            tick.style.backgroundColor = 'rgba(255, 255, 255, 0.45)';
+          } else {
+            tick.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+          }
         } else {
-          tick.style.backgroundColor = '#d4d4d4';
+          if (dist <= 2.5) {
+            tick.style.backgroundColor = '#4b5563';
+          } else if (dist <= 5.0) {
+            tick.style.backgroundColor = '#9ca3af';
+          } else {
+            tick.style.backgroundColor = '#d4d4d4';
+          }
         }
       }
     });
@@ -794,12 +787,11 @@
   function render2DSeatGrid() {
     if (!elGrid) return;
     elGrid.innerHTML = '';
-    const takenMap = TAKEN_SEATS[state.currentCohort] || {};
+    const takenMap = TAKEN_SEATS[state.currentCohort] || TAKEN_SEATS['Cohort 01'] || {};
 
     ROWS.forEach((rowLetter) => {
-      const isRecliner = (rowLetter === 'H' || rowLetter === 'I');
       const rowDiv = document.createElement('div');
-      rowDiv.className = `seat-row ${rowLetter === 'H' ? 'seat-row-recliner' : ''}`;
+      rowDiv.className = 'seat-row';
 
       // Left row label
       const labelDiv = document.createElement('span');
@@ -807,31 +799,12 @@
       labelDiv.textContent = rowLetter;
       rowDiv.appendChild(labelDiv);
 
-      // Seats cluster (2 | 8 | 2 layout with 2 vertical aisle gaps)
+      // Seats cluster (5 spots across = 20 total)
       const clusterDiv = document.createElement('div');
       clusterDiv.className = 'row-seats-cluster';
 
-      // Section 1: Seats 1-2
-      const sec1 = createSeatSection(rowLetter, 1, 2, isRecliner, takenMap);
-      clusterDiv.appendChild(sec1);
-
-      // Aisle gap 1
-      const gap1 = document.createElement('div');
-      gap1.className = 'aisle-gap';
-      clusterDiv.appendChild(gap1);
-
-      // Section 2: Seats 3-10
-      const sec2 = createSeatSection(rowLetter, 3, 10, isRecliner, takenMap);
-      clusterDiv.appendChild(sec2);
-
-      // Aisle gap 2
-      const gap2 = document.createElement('div');
-      gap2.className = 'aisle-gap';
-      clusterDiv.appendChild(gap2);
-
-      // Section 3: Seats 11-12
-      const sec3 = createSeatSection(rowLetter, 11, 12, isRecliner, takenMap);
-      clusterDiv.appendChild(sec3);
+      const sec = createSeatSection(rowLetter, 1, SEATS_PER_ROW, false, takenMap);
+      clusterDiv.appendChild(sec);
 
       rowDiv.appendChild(clusterDiv);
       elGrid.appendChild(rowDiv);
@@ -948,8 +921,8 @@
     });
 
     if (state.selectedRow && state.selectedSeat) {
-      const metrics = ROW_METRICS[state.selectedRow];
-      elBarSeatLabel.textContent = `Row ${state.selectedRow} · Seat ${state.selectedSeat}`;
+      const metrics = ROW_METRICS[state.selectedRow] || { price: 497 };
+      elBarSeatLabel.textContent = `Spot ${state.selectedRow}${state.selectedSeat}`;
       elBarPriceLabel.textContent = `R${metrics.price.toLocaleString('en-ZA')}`;
       elBtnContinue.disabled = false;
     } else {
@@ -998,27 +971,43 @@
 
     const rowLetter = state.selectedRow;
     const seatNum = state.selectedSeat;
-    const rMeta = ROW_METRICS[rowLetter];
-    const sOffset = SEAT_LATERAL_OFFSETS[seatNum - 1] || { offset: 0, dir: 'centre line' };
+    const rMeta = ROW_METRICS[rowLetter] || { price: 497, type: 'Cohort 01 Pass' };
 
-    elDrawerZoneBadge.textContent = rMeta.zone;
-    elDrawerZoneBadge.className = 'drawer-zone-badge';
-    if (rMeta.zone === 'STANDARD SPOT') elDrawerZoneBadge.classList.add('zone-upclose');
-    else if (rMeta.zone === 'SWEET SPOT') elDrawerZoneBadge.classList.add('zone-sweetspot');
-    else elDrawerZoneBadge.classList.add('zone-fullpicture');
+    if (elDrawerZoneBadge) {
+      elDrawerZoneBadge.textContent = 'COHORT 01 · 20 CAPPED SPOTS';
+      elDrawerZoneBadge.className = 'drawer-zone-badge zone-sweetspot';
+    }
 
-    elDrawerSeatTitle.textContent = `Row ${rowLetter}, Seat ${seatNum}`;
-    elDrawerSeatSub.textContent = `${rMeta.type} · R${rMeta.price.toLocaleString('en-ZA')}`;
+    const elDrawerSeatPill = document.getElementById('drawer-seat-pill');
+    if (elDrawerSeatPill) {
+      elDrawerSeatPill.textContent = `Spot ${rowLetter}${seatNum} Reserved`;
+    }
 
-    elPovStatusSeat.textContent = `View from ${rowLetter}${seatNum}`;
-    elMetricDist.textContent = rMeta.dist.toFixed(1);
-    elMetricDistSub.textContent = rMeta.desc;
-    elMetricFov.textContent = Math.round(rMeta.fov);
-    elMetricFovSub.textContent = rMeta.fov >= 80 ? 'Front-Row Immersion' : rMeta.fov >= 60 ? 'Masterclass Reference Focal' : 'VIP Panoramic Overview';
-    elMetricOffset.textContent = sOffset.offset.toFixed(1);
-    elMetricOffsetDir.textContent = sOffset.dir;
+    if (elDrawerSeatTitle) {
+      elDrawerSeatTitle.textContent = 'The 1st Step Method';
+    }
 
-    elBtnBookText.textContent = `Reserve Spot · R${rMeta.price.toLocaleString('en-ZA')}`;
+    if (elDrawerSeatSub) {
+      elDrawerSeatSub.textContent = '90-Day R5,000/mo Roadmap · Co-led live by Jay & Kutloano';
+    }
+
+    if (elPovStatusSeat) {
+      elPovStatusSeat.textContent = `Cohort Spot ${rowLetter}${seatNum}`;
+    }
+
+    // Metric 1: Monthly Target
+    if (elMetricDist) elMetricDist.textContent = 'R5,000';
+    if (elMetricDistSub) elMetricDistSub.textContent = 'Predictable student income';
+
+    // Metric 2: Timeline
+    if (elMetricFov) elMetricFov.textContent = '90';
+    const elFovUnit = document.getElementById('metric-fov-unit');
+    if (elFovUnit) elFovUnit.textContent = 'days';
+    if (elMetricFovSub) elMetricFovSub.textContent = '1–2 hrs daily around classes';
+
+    if (elBtnBookText) {
+      elBtnBookText.textContent = `Reserve Cohort Spot · R${rMeta.price.toLocaleString('en-ZA')}`;
+    }
   }
 
   function initCohortPillButtons() {
@@ -1032,9 +1021,9 @@
         pill.classList.add('active');
         pill.setAttribute('aria-selected', 'true');
 
-        state.currentCohort = pill.dataset.time;
+        state.currentCohort = pill.dataset.time || pill.textContent.trim();
         state.selectedRow = 'B';
-        state.selectedSeat = 4;
+        state.selectedSeat = 3;
         render2DSeatGrid();
         updateSightlineDrawerUI();
         update3DSelectedSeatHighlight();
@@ -1365,36 +1354,34 @@
     const baseMountGeom = new THREE.BoxGeometry(0.08, 0.34, 0.08);
 
     ROWS.forEach((rowLetter, rIndex) => {
-      const rowCoords = getSeatCoordinates3D(rowLetter, 6);
-      const isRecliner = (rowLetter === 'H' || rowLetter === 'I');
-      const riserDepth = isRecliner ? 1.45 : 1.05;
+      const rowCoords = getSeatCoordinates3D(rowLetter, 3);
+      const riserDepth = 1.25;
       const riserHeight = rIndex === 0 ? 0.2 : rowCoords.y + 0.2;
 
       const riserBox = new THREE.Mesh(
-        new THREE.BoxGeometry(10.5, riserHeight, riserDepth),
+        new THREE.BoxGeometry(6.6, riserHeight, riserDepth),
         riserFloorMat
       );
       riserBox.position.set(0, riserHeight / 2 - 0.1, rowCoords.z);
       cinemaScene.add(riserBox);
 
-      [-2.35, 2.25].forEach((aisleX) => {
-        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.02, 0.05), aisleLightMat);
+      [-1.8, 1.8].forEach((aisleX) => {
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.05), aisleLightMat);
         strip.position.set(aisleX, riserHeight - 0.08, rowCoords.z - riserDepth / 2 + 0.04);
         cinemaScene.add(strip);
       });
     });
 
     ROWS.forEach((rowLetter) => {
-      const isRecliner = (rowLetter === 'H' || rowLetter === 'I');
-      const velvetMat = isRecliner ? reclinerVelvetMat : standardVelvetMat;
+      const velvetMat = standardVelvetMat;
 
       for (let s = 1; s <= SEATS_PER_ROW; s++) {
         const coords = getSeatCoordinates3D(rowLetter, s);
         const chairGroup = new THREE.Group();
         chairGroup.position.set(coords.x, coords.y, coords.z);
 
-        if (s <= 2) chairGroup.rotation.y = 0.09;
-        else if (s >= 11) chairGroup.rotation.y = -0.09;
+        if (s <= 1) chairGroup.rotation.y = 0.08;
+        else if (s >= 5) chairGroup.rotation.y = -0.08;
 
         const cushion = new THREE.Mesh(cushionGeom, velvetMat.clone());
         cushion.position.set(0, 0.36, 0.02);
@@ -1403,12 +1390,12 @@
 
         const backrest = new THREE.Mesh(backrestGeom, velvetMat.clone());
         backrest.position.set(0, 0.68, 0.22);
-        backrest.rotation.x = isRecliner ? 0.32 : 0.22;
+        backrest.rotation.x = 0.22;
         chairGroup.add(backrest);
 
         const headrest = new THREE.Mesh(headrestGeom, velvetMat.clone());
-        headrest.position.set(0, 0.98, 0.28 + (isRecliner ? 0.06 : 0));
-        headrest.rotation.x = isRecliner ? 0.28 : 0.18;
+        headrest.position.set(0, 0.98, 0.28);
+        headrest.rotation.x = 0.18;
         chairGroup.add(headrest);
 
         const armL = new THREE.Mesh(armrestGeom, armrestMat);
@@ -1920,12 +1907,16 @@
 
     if (state.audioPlaying) {
       masterGain.gain.setTargetAtTime(0.45, audioCtx.currentTime, 0.4);
-      elAmbientAudioBtn.classList.add('active');
-      elAmbientAudioBtn.querySelector('.audio-btn-label').textContent = 'Hall Ambience (On)';
+      if (elAmbientAudioBtn) {
+        elAmbientAudioBtn.classList.add('active');
+        elAmbientAudioBtn.querySelector('.audio-btn-label').textContent = 'Hall Ambience (On)';
+      }
     } else {
       masterGain.gain.setTargetAtTime(0.001, audioCtx.currentTime, 0.3);
-      elAmbientAudioBtn.classList.remove('active');
-      elAmbientAudioBtn.querySelector('.audio-btn-label').textContent = 'Hall Ambience (Off)';
+      if (elAmbientAudioBtn) {
+        elAmbientAudioBtn.classList.remove('active');
+        elAmbientAudioBtn.querySelector('.audio-btn-label').textContent = 'Hall Ambience (Off)';
+      }
     }
   }
 
@@ -1939,12 +1930,14 @@
     if (elBtnDoneSpecs) elBtnDoneSpecs.addEventListener('click', closeSpecs);
 
     const openTicket = () => {
-      const rMeta = ROW_METRICS[state.selectedRow];
+      const rMeta = ROW_METRICS[state.selectedRow] || { price: 497 };
       elTShowtime.textContent = `${state.currentCohort}`;
-      elTSeat.textContent = `Row ${state.selectedRow} · Seat ${state.selectedSeat}`;
-      elTZone.textContent = rMeta.zone;
+      elTSeat.textContent = `Cohort 01 · Spot ${state.selectedRow}${state.selectedSeat}`;
+      elTZone.textContent = 'STANDARD COHORT PASS';
       elTPrice.textContent = `R${rMeta.price.toLocaleString('en-ZA')}`;
-      elTMetrics.textContent = `${rMeta.dist}m to stage · ${Math.round(rMeta.fov)}° FOV`;
+      if (elTMetrics) {
+        elTMetrics.textContent = '90-Day R5,000/mo Roadmap · Discord Community Access';
+      }
       elTicketModal.classList.add('open');
     };
 
