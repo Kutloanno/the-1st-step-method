@@ -677,11 +677,12 @@
 
     window.addEventListener('touchend', onEnd);
 
-    // Wheel scrolling on the planet hub scrubs between stages
+    // Wheel scrolling on the planet hub scrubs between stages (inverted scroll direction)
     window.addEventListener('wheel', (e) => {
       if (state.currentView !== 'planet-hub') return;
-      spinVelocity += e.deltaY * 0.00045;
-      currentTickValue = Math.max(0, Math.min(TOTAL_TICKS - 1, currentTickValue + e.deltaY * 0.035));
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      spinVelocity -= delta * 0.00045;
+      currentTickValue = Math.max(0, Math.min(TOTAL_TICKS - 1, currentTickValue - delta * 0.035));
       updateScrubberUI();
     }, { passive: true });
   }
