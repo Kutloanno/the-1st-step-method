@@ -1861,13 +1861,35 @@ body.dark-theme {
 .instructor-avatar-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.instructor-avatar-img {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  transition: transform 0.3s var(--apple-spring), box-shadow 0.3s var(--apple-spring);
+  flex-shrink: 0;
+  background-color: var(--bg-studio-subtle);
+}
+
+.instructor-card:hover .instructor-avatar-img {
+  transform: scale(1.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .instructor-avatar-img {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.35);
 }
 
 .avatar-ph {
-  width: 52px;
-  height: 52px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2056,12 +2078,62 @@ body.dark-theme {
   border-color: rgba(255, 255, 255, 0.9);
 }
 
+.testimonial-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.testimonial-avatar-img {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+  background-color: var(--bg-studio-subtle);
+}
+
+[data-theme="dark"] .testimonial-avatar-img {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+.testimonial-author-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.t-author-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.25;
+}
+
+.t-author-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-stone);
+  margin-top: 2px;
+}
+
+[data-theme="dark"] .t-author-title {
+  color: #a1a1aa;
+}
+
 .t-quote {
   font-size: 14px;
   color: #1f2937;
   line-height: 1.55;
   font-style: italic;
   margin-bottom: 14px;
+}
+
+[data-theme="dark"] .t-quote {
+  color: #e4e4e7;
 }
 
 .t-author {
