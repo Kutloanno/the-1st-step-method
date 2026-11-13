@@ -832,6 +832,108 @@
   }
 
   // ==========================================================================
+  // 4B. REACTBITS COMPARISON SLIDER (BEFORE VS. AFTER OUR PTR)
+  // ==========================================================================
+  function initComparisonSlider() {
+    const slider = document.getElementById('ptr-compare-slider');
+    const handle = document.getElementById('ptr-compare-handle');
+    const presetBtns = document.querySelectorAll('.comparison-presets-bar .preset-btn');
+    if (!slider || !handle) return;
+
+    let isDragging = false;
+    let currentPos = 50;
+
+    function setPosition(percent, smooth = false) {
+      currentPos = Math.max(5, Math.min(95, percent));
+      if (smooth) {
+        slider.style.transition = '--slider-pos 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+        slider.style.setProperty('--slider-pos', `${currentPos}%`);
+        setTimeout(() => {
+          slider.style.transition = '';
+        }, 360);
+      } else {
+        slider.style.setProperty('--slider-pos', `${currentPos}%`);
+      }
+      handle.setAttribute('aria-valuenow', Math.round(currentPos));
+
+      presetBtns.forEach(btn => {
+        const p = parseFloat(btn.dataset.pos);
+        btn.classList.toggle('active', Math.abs(currentPos - p) < 7);
+      });
+    }
+
+    function updateFromClientX(clientX) {
+      const rect = slider.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const x = clientX - rect.left;
+      const percent = (x / rect.width) * 100;
+      setPosition(percent, false);
+    }
+
+    function onPointerDown(e) {
+      if (e.target.closest('.preset-btn') || e.target.closest('button')) return;
+      isDragging = true;
+      try {
+        handle.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      updateFromClientX(e.clientX);
+      slider.classList.add('is-dragging');
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return;
+      updateFromClientX(e.clientX);
+    }
+
+    function onPointerUp(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      try {
+        handle.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+      slider.classList.remove('is-dragging');
+    }
+
+    handle.addEventListener('pointerdown', onPointerDown);
+    slider.addEventListener('pointerdown', onPointerDown);
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+
+    // Keyboard navigation
+    handle.addEventListener('keydown', (e) => {
+      const step = e.shiftKey ? 10 : 3;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setPosition(currentPos - step, false);
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setPosition(currentPos + step, false);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        setPosition(5, true);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        setPosition(95, true);
+      }
+    });
+
+    // Preset buttons
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pos = parseFloat(btn.dataset.pos);
+        if (!isNaN(pos)) {
+          setPosition(pos, true);
+        }
+      });
+    });
+
+    setPosition(50, false);
+  }
+
+  // ==========================================================================
   // 5. 2D-TO-3D CINEMA SEAT SELECTOR ("THE SEATS PAGE")
   // ==========================================================================
   function render2DSeatGrid() {
@@ -2347,6 +2449,7 @@
     initPlanetThreeJS();
     initScrubberDial();
     initFAQAccordion();
+    initComparisonSlider();
 
     render2DSeatGrid();
     initCohortPillButtons();
