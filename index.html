@@ -857,15 +857,39 @@
                   <span class="feat-pill">💬 Discord Community</span>
                 </div>
 
-                <!-- Bottom Action Row (Full Width Big Reserve Spot Button) -->
+                <!-- Bottom Action Row (Slide to Commit Checkout Button) -->
                 <div class="drawer-actions-row">
-                  <button class="drawer-btn-primary drawer-btn-hero" id="btn-book-seat">
-                    <span id="btn-book-text">Reserve Cohort Spot · R499</span>
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                  </button>
+                  <div class="slide-commit" id="slide-commit-container" data-phase="idle">
+                    <div class="slide-commit__track" id="slide-commit-track">
+                      <span class="slide-commit__label" id="slide-commit-label" aria-hidden="true">
+                        <span class="slide-commit__text slide-commit__text--plain" id="slide-commit-text-plain">Slide to Reserve Spot · R499</span>
+                        <span class="slide-commit__text slide-commit__text--error">Reservation failed</span>
+                      </span>
+                      <div class="slide-commit__capsule" id="slide-commit-capsule" role="slider" tabindex="0" aria-label="Slide to Reserve Spot · R499" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div class="slide-commit__content" id="slide-commit-content">
+                          <span class="slide-commit__arrow" id="slide-commit-arrow" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                              <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                          </span>
+                          <span class="slide-commit__spin" id="slide-commit-spin" aria-hidden="true">
+                            <svg class="slide-commit__spinner" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-opacity="0.25"></circle>
+                              <path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path>
+                            </svg>
+                          </span>
+                          <span class="slide-commit__done" id="slide-commit-done" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span id="slide-commit-done-text">Reserved · R499</span>
+                          </span>
+                        </div>
+                      </div>
+                      <span class="slide-commit__sr" id="slide-commit-sr" aria-live="polite"></span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

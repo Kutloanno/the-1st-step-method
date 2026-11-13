@@ -1058,6 +1058,9 @@
     if (elBtnBookText) {
       elBtnBookText.textContent = `Reserve Cohort Spot · R${rMeta.price.toLocaleString('en-ZA')}`;
     }
+    if (slideCommitController) {
+      slideCommitController.updatePrice(rMeta.price);
+    }
   }
 
   function initCohortPillButtons() {
@@ -1970,6 +1973,329 @@
     }
   }
 
+  // ==========================================================================
+  // 6B. SLIDE COMMIT COMPONENT (THEATRE CHECKOUT BUTTON)
+  // ==========================================================================
+  let slideCommitController = null;
+
+  function initSlideCommit(onConfirmCallback) {
+    const container = document.getElementById('slide-commit-container');
+    const track = document.getElementById('slide-commit-track');
+    const capsule = document.getElementById('slide-commit-capsule');
+    const content = document.getElementById('slide-commit-content');
+    const label = document.getElementById('slide-commit-label');
+    const arrow = document.getElementById('slide-commit-arrow');
+    const spin = document.getElementById('slide-commit-spin');
+    const done = document.getElementById('slide-commit-done');
+    const plainText = document.getElementById('slide-commit-text-plain');
+    const doneText = document.getElementById('slide-commit-done-text');
+    const sr = document.getElementById('slide-commit-sr');
+    if (!container || !track || !capsule || !content) return;
+
+    const PAD = 4;
+    const SQUASH_MAX = 0.08;
+    const SQUASH_DIV = 110;
+    const SWELL = 1.03;
+    const MIN_PENDING = 320;
+    const HOLD_MS = 1600;
+
+    let phase = 'idle';
+    let isHeld = false;
+    let isHot = false;
+    let currentX = 0;
+    let anchorX = 0;
+    let grabOffset = null;
+    let activePointerId = null;
+    let animFrame = null;
+    let timer = null;
+
+    const getMetrics = () => {
+      const rect = track.getBoundingClientRect();
+      const width = rect.width || 320;
+      const height = rect.height || 54;
+      const GRIP = height - PAD * 2;
+      const INNER = Math.max(1, width - PAD * 2);
+      const TRAVEL = Math.max(1, INNER - GRIP);
+      const radius = height / 2;
+      const gripR = Math.max(0, radius - PAD);
+      return { width, height, GRIP, INNER, TRAVEL, radius, gripR };
+    };
+
+    function clamp(val, min, max) {
+      return Math.min(max, Math.max(min, val));
+    }
+
+    function updateVisuals(xVal, forceEdge = null) {
+      const { GRIP, INNER, TRAVEL, gripR } = getMetrics();
+      const seen = clamp(xVal, 0, TRAVEL);
+      const edge = forceEdge !== null ? forceEdge : (seen + GRIP + clamp(anchorX - seen, 0, TRAVEL));
+      
+      // Capsule clip path
+      const rightInset = Math.max(0, INNER - edge);
+      capsule.style.clipPath = `inset(0 ${rightInset}px 0 0 round ${gripR}px)`;
+      
+      // Center content in the visible grip
+      const centerPos = (seen + edge) / 2 - INNER / 2;
+      content.style.transform = `translateX(${centerPos}px)`;
+
+      // Label opacity fades out as grip moves
+      const say = clamp(1 - (seen / (TRAVEL * 0.55)), 0, 1);
+      if (label) label.style.opacity = say;
+
+      // Arrow opacity
+      const arrowOp = clamp(1 - (seen - TRAVEL * 0.55) / (TRAVEL * 0.4), 0, 1);
+      if (arrow) arrow.style.opacity = phase === 'idle' ? arrowOp : 0;
+
+      // Squash and swell scale
+      const swell = (isHot && !isHeld && phase === 'idle') ? SWELL : 1;
+      const q = 1 - Math.min(SQUASH_MAX, Math.max(0, -xVal) / SQUASH_DIV);
+      capsule.style.transform = `scale(${q * swell}, ${swell / q})`;
+      capsule.style.transformOrigin = `${seen}px 50%`;
+
+      // Update ARIA
+      const percent = Math.round((seen / TRAVEL) * 100);
+      capsule.setAttribute('aria-valuenow', percent);
+      const labelStr = plainText ? plainText.textContent : 'Slide to reserve';
+      capsule.setAttribute('aria-valuetext', `${labelStr}, ${percent}%`);
+    }
+
+    function setPhase(newPhase) {
+      phase = newPhase;
+      container.dataset.phase = newPhase;
+      if (newPhase === 'pending') {
+        if (sr) sr.textContent = 'Processing reservation...';
+        if (arrow) arrow.style.opacity = 0;
+        if (spin) spin.style.opacity = 1;
+      } else if (newPhase === 'done') {
+        if (sr) sr.textContent = doneText ? doneText.textContent : 'Reserved';
+        if (spin) spin.style.opacity = 0;
+        if (arrow) arrow.style.opacity = 0;
+        if (done) {
+          done.style.opacity = 1;
+          done.style.transform = 'scale(1)';
+        }
+      } else if (newPhase === 'idle') {
+        if (sr) sr.textContent = '';
+        if (spin) spin.style.opacity = 0;
+        if (done) {
+          done.style.opacity = 0;
+          done.style.transform = 'scale(0.95)';
+        }
+        if (arrow) arrow.style.opacity = 1;
+      }
+    }
+
+    function goHome() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      let startX = currentX;
+      let startTime = performance.now();
+      const duration = 240;
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        currentX = startX * (1 - ease);
+        anchorX = 0;
+        updateVisuals(currentX);
+
+        if (progress < 1) {
+          animFrame = requestAnimationFrame(step);
+        } else {
+          currentX = 0;
+          anchorX = 0;
+          updateVisuals(0);
+          animFrame = null;
+        }
+      }
+      animFrame = requestAnimationFrame(step);
+    }
+
+    function commit() {
+      const { INNER, TRAVEL } = getMetrics();
+      clearTimeout(timer);
+      currentX = TRAVEL;
+      anchorX = TRAVEL;
+      updateVisuals(TRAVEL);
+      setPhase('pending');
+
+      setTimeout(() => {
+        setPhase('done');
+        anchorX = TRAVEL;
+
+        // Animate currentX to 0 so the pill smoothly stretches to full width and centers content
+        const startX = currentX;
+        const startTime = performance.now();
+        const duration = 280;
+
+        function springToZero(now) {
+          const t = Math.min(1, (now - startTime) / duration);
+          const ease = 1 - Math.pow(1 - t, 3);
+          currentX = startX * (1 - ease);
+          updateVisuals(currentX);
+          if (t < 1) {
+            requestAnimationFrame(springToZero);
+          } else {
+            currentX = 0;
+            updateVisuals(0);
+          }
+        }
+        requestAnimationFrame(springToZero);
+
+        // Landing dip pulse animation
+        track.style.transform = 'scale(0.97)';
+        setTimeout(() => { track.style.transform = 'scale(1)'; }, 180);
+
+        // Call the checkout confirm callback
+        if (typeof onConfirmCallback === 'function') {
+          onConfirmCallback();
+        }
+
+        timer = setTimeout(() => {
+          settle();
+        }, HOLD_MS);
+      }, MIN_PENDING);
+    }
+
+    function settle() {
+      setPhase('idle');
+      const startAnchor = anchorX;
+      const startTime = performance.now();
+      const duration = 240;
+
+      function collapseAnchor(now) {
+        const t = Math.min(1, (now - startTime) / duration);
+        const ease = 1 - Math.pow(1 - t, 3);
+        anchorX = startAnchor * (1 - ease);
+        updateVisuals(0);
+        if (t < 1) {
+          requestAnimationFrame(collapseAnchor);
+        } else {
+          anchorX = 0;
+          currentX = 0;
+          updateVisuals(0);
+        }
+      }
+      requestAnimationFrame(collapseAnchor);
+    }
+
+    track.addEventListener('pointerdown', (e) => {
+      if (phase === 'pending' || phase === 'done' || e.button !== 0) return;
+      if (animFrame) cancelAnimationFrame(animFrame);
+      activePointerId = e.pointerId;
+      isHeld = true;
+      container.setAttribute('data-held', '');
+      try {
+        track.setPointerCapture(e.pointerId);
+      } catch (err) {}
+
+      const rect = track.getBoundingClientRect();
+      const at = e.clientX - rect.left - PAD;
+      grabOffset = at - currentX;
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isHeld || e.pointerId !== activePointerId) return;
+      const { TRAVEL } = getMetrics();
+      const rect = track.getBoundingClientRect();
+      const at = e.clientX - rect.left - PAD;
+      if (grabOffset === null) grabOffset = at - currentX;
+
+      const nextX = clamp(at - grabOffset, -15, TRAVEL + 10);
+      currentX = nextX;
+      updateVisuals(currentX);
+    });
+
+    const onPointerRelease = (e) => {
+      if (!isHeld || (e && e.pointerId !== activePointerId)) return;
+      isHeld = false;
+      activePointerId = null;
+      grabOffset = null;
+      container.removeAttribute('data-held');
+      try {
+        track.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+
+      const { TRAVEL } = getMetrics();
+      if (currentX >= TRAVEL * 0.9) {
+        commit();
+      } else {
+        goHome();
+      }
+    };
+
+    window.addEventListener('pointerup', onPointerRelease);
+    window.addEventListener('pointercancel', onPointerRelease);
+
+    capsule.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') {
+        isHot = true;
+        updateVisuals(currentX);
+      }
+    });
+    capsule.addEventListener('pointerleave', () => {
+      isHot = false;
+      updateVisuals(currentX);
+    });
+
+    capsule.addEventListener('keydown', (e) => {
+      if (phase === 'pending' || phase === 'done') return;
+      const { TRAVEL } = getMetrics();
+      const step = TRAVEL / 10;
+
+      if (e.key === 'End') {
+        e.preventDefault();
+        commit();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentX = Math.min(TRAVEL, currentX + step);
+        updateVisuals(currentX);
+        if (currentX >= TRAVEL) commit();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentX = Math.max(0, currentX - step);
+        updateVisuals(currentX);
+      } else if (e.key === 'Home' || e.key === 'Escape') {
+        e.preventDefault();
+        goHome();
+      }
+    });
+
+    updateVisuals(0);
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        if (phase === 'idle') updateVisuals(currentX);
+        else if (phase === 'done') {
+          const { INNER, TRAVEL } = getMetrics();
+          updateVisuals(TRAVEL, INNER);
+        }
+      });
+      ro.observe(track);
+    }
+
+    window.addEventListener('resize', () => {
+      if (phase === 'idle') updateVisuals(0);
+      else if (phase === 'done') {
+        const { INNER, TRAVEL } = getMetrics();
+        updateVisuals(TRAVEL, INNER);
+      }
+    });
+
+    slideCommitController = {
+      updatePrice(price) {
+        const formatted = `R${price.toLocaleString('en-ZA')}`;
+        if (plainText) plainText.textContent = `Slide to Reserve Spot · ${formatted}`;
+        if (doneText) doneText.textContent = `Reserved · ${formatted}`;
+        capsule.setAttribute('aria-label', `Slide to Reserve Spot · ${formatted}`);
+        if (phase === 'idle') updateVisuals(0);
+      },
+      reset() {
+        settle();
+      }
+    };
+  }
+
   function initModals() {
     const openSpecs = () => elSpecsModal.classList.add('open');
     const closeSpecs = () => elSpecsModal.classList.remove('open');
@@ -1993,6 +2319,7 @@
 
     const closeTicket = () => elTicketModal.classList.remove('open');
 
+    initSlideCommit(openTicket);
     if (elBtnBook) elBtnBook.addEventListener('click', openTicket);
     if (elBtnConfirmTicket) elBtnConfirmTicket.addEventListener('click', closeTicket);
 
