@@ -3,7 +3,7 @@
  * Co-Founded by Jay & Kutloano (Helping NSFAS varsity students make R5,000/month)
  * Unified interactive application controller:
  * 1. 3D Planetary Scrubber Engine (White Studio Hub + Gaussian Wave Ruler)
- * 2. Course Subpages System (The River, The Method, Jay & Kutloano, 90-Day Roadmap, Wins & Guarantees)
+ * 2. Course Subpages System (The River, The Method, Jay & Kutloano, 90-Day Roadmap, Wins & Proof)
  * 3. 2D-to-3D Cinema Seat Selector (Cohort 04 Auditorium, 108 Capped Spots)
  */
 
@@ -55,9 +55,9 @@
     {
       id: 4,
       era: 'Stage 05 · Pangaea',
-      title: 'Wins & Guarantees',
-      sub: 'Real student results, Dinner Party Brag & our R5K zero-risk guarantee',
-      cta: 'Explore Wins & Guarantees',
+      title: 'Wins & Proof',
+      sub: 'Real student results, Dinner Party Brag & verified creator retainers',
+      cta: 'Explore Student Wins',
       target: 'subpage-4',
       color: '#059669'
     },
@@ -376,7 +376,7 @@
         openCourseSubpage(2);
       } else if (hash === '#subpage-3' || hash === '#roadmap' || hash === '#curriculum') {
         openCourseSubpage(3);
-      } else if (hash === '#subpage-4' || hash === '#wins' || hash === '#guarantees' || hash === '#faq') {
+      } else if (hash === '#subpage-4' || hash === '#wins' || hash === '#proof' || hash === '#guarantees' || hash === '#faq') {
         openCourseSubpage(4);
       } else if (hash === '#planet' || hash === '#home') {
         switchView('planet-hub');
