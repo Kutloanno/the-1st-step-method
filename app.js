@@ -65,22 +65,23 @@
       id: 5,
       era: 'Today · Open Enrollment',
       title: 'Available Spots in 3D',
-      sub: 'First Step Method Available Spots · 20 Limited Spots',
+      sub: 'First Step Method Available Spots · 25 Limited Spots (5 Free)',
       cta: 'Claim Your Spot',
       target: 'seats-page',
       color: '#7ee09b'
     }
   ];
 
-  // Cohort Row Metrics (20 Capped Spots: 4 Rows x 5 Seats)
-  const ROWS = ['A', 'B', 'C', 'D'];
+  // Cohort Row Metrics (25 Capped Spots: 5 Rows x 5 Seats · 5 Free Student Seats)
+  const ROWS = ['A', 'B', 'C', 'D', 'E'];
   const SEATS_PER_ROW = 5;
 
   const ROW_METRICS = {
     A: { dist: 6.0, fov: 78, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Direct live engagement with instructors' },
     B: { dist: 7.5, fov: 68, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Optimal focal axis for live review sessions' },
     C: { dist: 9.0, fov: 60, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Balanced perspective for masterclass breakdowns' },
-    D: { dist: 10.5, fov: 54, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Full overview & active cohort participation' }
+    D: { dist: 10.5, fov: 54, zone: 'COHORT SPOT', type: 'Cohort 01 Pass', price: 499, desc: 'Full overview & active cohort participation' },
+    E: { dist: 12.0, fov: 48, zone: 'FREE STUDENT SPOT', type: 'Free Student Seat', price: 0, desc: '100% Free scholarship seat for university students' }
   };
 
   const SEAT_LATERAL_OFFSETS = [
@@ -96,13 +97,15 @@
       A: [2, 4],
       B: [1, 5],
       C: [3],
-      D: [2, 4]
+      D: [2, 4],
+      E: []
     },
     'Cohort 1': {
       A: [2, 4],
       B: [1, 5],
       C: [3],
-      D: [2, 4]
+      D: [2, 4],
+      E: []
     }
   };
 
@@ -944,14 +947,20 @@
     ROWS.forEach((rowLetter) => {
       const rowDiv = document.createElement('div');
       rowDiv.className = 'seat-row';
+      const isFreeRow = (ROW_METRICS[rowLetter] && ROW_METRICS[rowLetter].price === 0);
+      if (isFreeRow) rowDiv.classList.add('seat-row-free');
 
       // Left row label
       const labelDiv = document.createElement('span');
-      labelDiv.className = 'row-label';
-      labelDiv.textContent = rowLetter;
+      labelDiv.className = `row-label ${isFreeRow ? 'row-label-free' : ''}`;
+      if (isFreeRow) {
+        labelDiv.innerHTML = `${rowLetter}<span class="free-pill-tag">FREE</span>`;
+      } else {
+        labelDiv.textContent = rowLetter;
+      }
       rowDiv.appendChild(labelDiv);
 
-      // Seats cluster (5 spots across = 20 total)
+      // Seats cluster (5 spots across = 25 total)
       const clusterDiv = document.createElement('div');
       clusterDiv.className = 'row-seats-cluster';
 
@@ -1004,14 +1013,17 @@
       const seatBtn = document.createElement('button');
       const isTaken = takenMap[rowLetter] && takenMap[rowLetter].includes(s);
       const isSelected = (state.selectedRow === rowLetter && state.selectedSeat === s);
+      const isFree = (ROW_METRICS[rowLetter] && ROW_METRICS[rowLetter].price === 0);
 
-      seatBtn.className = `seat-btn ${isRecliner ? 'recliner' : 'standard'} ${isTaken ? 'taken' : 'available'} ${isSelected ? 'selected' : ''}`;
+      seatBtn.className = `seat-btn ${isRecliner ? 'recliner' : 'standard'} ${isTaken ? 'taken' : 'available'} ${isSelected ? 'selected' : ''} ${isFree ? 'free-seat' : ''}`;
       seatBtn.dataset.row = rowLetter;
       seatBtn.dataset.seat = s.toString();
       seatBtn.title = isTaken
         ? `Row ${rowLetter}, Seat ${s} (Reserved)`
-        : `Row ${rowLetter}, Seat ${s} — Click to view in 3D`;
-      seatBtn.setAttribute('aria-label', `Row ${rowLetter}, Seat ${s}, ${isTaken ? 'Taken' : 'Available'}`);
+        : isFree
+          ? `Row ${rowLetter}, Seat ${s} — 100% Free Student Seat`
+          : `Row ${rowLetter}, Seat ${s} — Click to view in 3D`;
+      seatBtn.setAttribute('aria-label', `Row ${rowLetter}, Seat ${s}, ${isFree ? 'Free Student Seat' : isTaken ? 'Taken' : 'Available'}`);
 
       if (isTaken) {
         seatBtn.addEventListener('click', (e) => {
@@ -1074,8 +1086,9 @@
 
     if (state.selectedRow && state.selectedSeat) {
       const metrics = ROW_METRICS[state.selectedRow] || { price: 499 };
-      elBarSeatLabel.textContent = `Spot ${state.selectedRow}${state.selectedSeat}`;
-      elBarPriceLabel.textContent = `R${metrics.price.toLocaleString('en-ZA')}`;
+      const isFree = metrics.price === 0;
+      elBarSeatLabel.textContent = `Spot ${state.selectedRow}${state.selectedSeat}${isFree ? ' · Free Seat' : ''}`;
+      elBarPriceLabel.textContent = isFree ? 'FREE (R0)' : `R${metrics.price.toLocaleString('en-ZA')}`;
       elBtnContinue.disabled = false;
     } else {
       elBarSeatLabel.textContent = 'Choose your cohort spot';
@@ -1094,11 +1107,14 @@
         const dot = document.createElement('div');
         const isTaken = takenMap[rowLetter] && takenMap[rowLetter].includes(s);
         const isActive = (state.selectedRow === rowLetter && state.selectedSeat === s);
+        const isFree = (ROW_METRICS[rowLetter] && ROW_METRICS[rowLetter].price === 0);
 
-        dot.className = `radar-dot ${isTaken ? 'taken' : ''} ${isActive ? 'active' : ''}`;
+        dot.className = `radar-dot ${isTaken ? 'taken' : ''} ${isActive ? 'active' : ''} ${isFree ? 'radar-free' : ''}`;
         dot.title = isTaken
           ? `Row ${rowLetter}, Seat ${s} (Reserved)`
-          : `Row ${rowLetter}, Seat ${s} (Click to switch POV)`;
+          : isFree
+            ? `Row ${rowLetter}, Seat ${s} (100% Free Student Seat)`
+            : `Row ${rowLetter}, Seat ${s} (Click to switch POV)`;
 
         if (!isTaken) {
           dot.style.cursor = 'pointer';
@@ -1124,27 +1140,30 @@
     const rowLetter = state.selectedRow;
     const seatNum = state.selectedSeat;
     const rMeta = ROW_METRICS[rowLetter] || { price: 499, type: 'Cohort 01 Pass' };
+    const isFree = rMeta.price === 0;
 
     if (elDrawerZoneBadge) {
-      elDrawerZoneBadge.textContent = 'COHORT 01 · 20 CAPPED SPOTS';
-      elDrawerZoneBadge.className = 'drawer-zone-badge zone-sweetspot';
+      elDrawerZoneBadge.textContent = isFree ? 'COHORT 01 · 5 FREE STUDENT SPOTS' : 'COHORT 01 · 25 CAPPED SPOTS';
+      elDrawerZoneBadge.className = isFree ? 'drawer-zone-badge zone-free' : 'drawer-zone-badge zone-sweetspot';
     }
 
     const elDrawerSeatPill = document.getElementById('drawer-seat-pill');
     if (elDrawerSeatPill) {
-      elDrawerSeatPill.textContent = `Spot ${rowLetter}${seatNum} Reserved`;
+      elDrawerSeatPill.textContent = isFree ? `Spot ${rowLetter}${seatNum} (100% Free)` : `Spot ${rowLetter}${seatNum} Reserved`;
     }
 
     if (elDrawerSeatTitle) {
-      elDrawerSeatTitle.textContent = 'The 1st Step Method';
+      elDrawerSeatTitle.textContent = isFree ? 'Free Student Scholarship Spot' : 'The 1st Step Method';
     }
 
     if (elDrawerSeatSub) {
-      elDrawerSeatSub.textContent = '90-Day R5,000/mo Roadmap · Co-led live by Jay & Kutloano';
+      elDrawerSeatSub.textContent = isFree
+        ? '100% Free Cohort Access · Co-led live by Jay & Kutloano'
+        : '90-Day R5,000/mo Roadmap · Co-led live by Jay & Kutloano';
     }
 
     if (elPovStatusSeat) {
-      elPovStatusSeat.textContent = `Cohort Spot ${rowLetter}${seatNum}`;
+      elPovStatusSeat.textContent = isFree ? `Free Spot ${rowLetter}${seatNum}` : `Cohort Spot ${rowLetter}${seatNum}`;
     }
 
     // Metric 1: Monthly Target
@@ -1158,7 +1177,7 @@
     if (elMetricFovSub) elMetricFovSub.textContent = '1–2 hrs daily around classes';
 
     if (elBtnBookText) {
-      elBtnBookText.textContent = `Reserve Cohort Spot · R${rMeta.price.toLocaleString('en-ZA')}`;
+      elBtnBookText.textContent = isFree ? 'Claim Free Cohort Spot · R0' : `Reserve Cohort Spot · R${rMeta.price.toLocaleString('en-ZA')}`;
     }
     if (slideCommitController) {
       slideCommitController.updatePrice(rMeta.price);
@@ -1597,19 +1616,26 @@
       selectedSeatTexture = new THREE.CanvasTexture(selectedSeatCanvas);
     }
 
+    const isFree = (ROW_METRICS[state.selectedRow] && ROW_METRICS[state.selectedRow].price === 0);
     const ctx = selectedSeatCanvas.getContext('2d');
-    ctx.fillStyle = '#7ee09b';
+    ctx.fillStyle = isFree ? '#10b981' : '#7ee09b';
     ctx.fillRect(0, 0, 256, 256);
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
     ctx.lineWidth = 14;
     ctx.strokeRect(12, 12, 232, 232);
 
-    ctx.fillStyle = '#06200e';
-    ctx.font = '700 120px Inter, sans-serif';
+    ctx.fillStyle = isFree ? '#ffffff' : '#06200e';
+    ctx.font = isFree ? '700 84px Inter, sans-serif' : '700 120px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(seatNum.toString(), 128, 132);
+    ctx.fillText(`${state.selectedRow}${seatNum}`, 128, isFree ? 105 : 132);
+
+    if (isFree) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 34px Inter, sans-serif';
+      ctx.fillText('FREE', 128, 178);
+    }
 
     selectedSeatTexture.needsUpdate = true;
     return selectedSeatTexture;
@@ -2386,10 +2412,13 @@
 
     slideCommitController = {
       updatePrice(price) {
-        const formatted = `R${price.toLocaleString('en-ZA')}`;
-        if (plainText) plainText.textContent = `Slide to Reserve Spot · ${formatted}`;
-        if (doneText) doneText.textContent = `Reserved · ${formatted}`;
-        capsule.setAttribute('aria-label', `Slide to Reserve Spot · ${formatted}`);
+        const isFree = price === 0;
+        const formatted = isFree ? 'FREE (R0)' : `R${price.toLocaleString('en-ZA')}`;
+        const labelStr = isFree ? 'Slide to Claim Free Spot · R0' : `Slide to Reserve Spot · ${formatted}`;
+        const doneStr = isFree ? 'Claimed Free Spot · R0' : `Reserved · ${formatted}`;
+        if (plainText) plainText.textContent = labelStr;
+        if (doneText) doneText.textContent = doneStr;
+        capsule.setAttribute('aria-label', labelStr);
         if (phase === 'idle') updateVisuals(0);
       },
       reset() {
@@ -2409,10 +2438,11 @@
 
     const openTicket = () => {
       const rMeta = ROW_METRICS[state.selectedRow] || { price: 499 };
+      const isFree = rMeta.price === 0;
       elTShowtime.textContent = `${state.currentCohort}`;
-      elTSeat.textContent = `Cohort 01 · Spot ${state.selectedRow}${state.selectedSeat}`;
-      elTZone.textContent = 'STANDARD COHORT PASS';
-      elTPrice.textContent = `R${rMeta.price.toLocaleString('en-ZA')}`;
+      elTSeat.textContent = `Cohort 01 · Spot ${state.selectedRow}${state.selectedSeat}${isFree ? ' (Free Student Spot)' : ''}`;
+      elTZone.textContent = isFree ? 'FREE SCHOLARSHIP COHORT PASS' : 'STANDARD COHORT PASS';
+      elTPrice.textContent = isFree ? 'FREE (R0)' : `R${rMeta.price.toLocaleString('en-ZA')}`;
       if (elTMetrics) {
         elTMetrics.textContent = '90-Day R5,000/mo Roadmap · Discord Community Access';
       }

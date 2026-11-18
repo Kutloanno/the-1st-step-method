@@ -977,6 +977,58 @@ body[data-theme="light"] {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
+/* Free Seats (Row E): Emerald Tinted Tactile Tiles in Light Mode */
+[data-theme="light"] .seat-btn.free-seat.available,
+[data-theme="light"] .seat-btn.standard.free-seat.available {
+  background-color: #ecfdf5 !important;
+  border: 1.5px solid #10b981 !important;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.16), inset 0 1px 0 #ffffff !important;
+}
+
+[data-theme="light"] .seat-btn.free-seat.available:hover,
+[data-theme="light"] .seat-btn.standard.free-seat.available:hover {
+  background-color: #d1fae5 !important;
+  border-color: #059669 !important;
+  color: #059669 !important;
+  transform: translateY(-2px) scale(1.08) !important;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3), inset 0 1px 0 #ffffff !important;
+}
+
+[data-theme="light"] .seat-btn.free-seat.available .seat-num-label,
+[data-theme="light"] .seat-btn.standard.free-seat.available .seat-num-label {
+  color: #065f46 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="light"] .seat-btn.free-seat.selected,
+[data-theme="light"] .seat-btn.standard.free-seat.selected {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  border-color: #6ee7b7 !important;
+  box-shadow: 0 8px 26px rgba(16, 185, 129, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.14) !important;
+}
+
+[data-theme="light"] .swatch-free {
+  background: #ecfdf5 !important;
+  border: 1.5px solid #10b981 !important;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="light"] .row-label-free {
+  color: #059669 !important;
+}
+
+[data-theme="light"] .free-pill-tag {
+  background: #059669 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .zone-free {
+  background: #ecfdf5 !important;
+  color: #065f46 !important;
+  border-color: #a7f3d0 !important;
+}
+
 /* 8. Seat Legend Bar */
 [data-theme="light"] .seat-legend {
   background: rgba(255, 255, 255, 0.9) !important;
@@ -3861,7 +3913,7 @@ body[data-theme="light"] {
 .auditorium-grid {
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.8vh, 16px);
+  gap: clamp(7px, 1.4vh, 12px);
   width: 100%;
   max-width: 340px;
 }
@@ -3879,12 +3931,17 @@ body[data-theme="light"] {
 }
 
 .row-label {
-  width: 22px;
+  min-width: 22px;
+  width: auto;
+  padding-right: 4px;
   font-size: 13px;
   font-weight: 700;
   color: var(--text-stone);
   text-align: left;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .row-seats-cluster {
@@ -3987,6 +4044,64 @@ body[data-theme="light"] {
 
 .seat-btn.selected .seat-num-label {
   color: var(--text-on-mint) !important;
+}
+
+/* Free Seats Tier (Row E: 5 Free Student Seats) */
+.seat-btn.free-seat.available {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border: 1.5px solid #10b981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.seat-btn.free-seat.available:hover {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1) translateY(-1px) !important;
+}
+
+.seat-btn.free-seat.available .seat-num-label {
+  color: #34d399 !important;
+  font-weight: 800 !important;
+}
+
+.seat-btn.free-seat.selected {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border-color: #6ee7b7 !important;
+  box-shadow: var(--glass-specular-button), 0 0 24px rgba(16, 185, 129, 0.7) !important;
+  transform: scale(1.14) !important;
+}
+
+.swatch-free {
+  background: rgba(16, 185, 129, 0.25);
+  border: 1.5px solid #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.35);
+}
+
+.row-label-free {
+  color: #10b981 !important;
+}
+
+.free-pill-tag {
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: #10b981;
+  color: #ffffff;
+  padding: 1px 3.5px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.radar-dot.radar-free {
+  background-color: #10b981;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.6);
+}
+
+.zone-free {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
 }
 
 /* Seat Legend */
