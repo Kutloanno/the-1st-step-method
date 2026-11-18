@@ -1049,21 +1049,128 @@
     </div>
   </div>
 
+  <!-- MODAL: Paystack Checkout & Student Reservation Form -->
+  <div class="modal-overlay" id="checkout-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card checkout-card">
+      <div class="modal-header">
+        <div>
+          <span class="brand-badge" id="checkout-tier-badge">COHORT 01 ENROLLMENT</span>
+          <h2 class="modal-title" id="checkout-modal-title">Secure Your Seat</h2>
+        </div>
+        <button class="modal-close-btn" id="btn-close-checkout" aria-label="Close checkout dialog">×</button>
+      </div>
+
+      <!-- Selected Seat Summary Box -->
+      <div class="checkout-summary-box" id="checkout-summary-box">
+        <div class="checkout-summary-top">
+          <div class="checkout-spot-tag" id="checkout-summary-spot">Spot B3</div>
+          <div class="checkout-price-tag" id="checkout-summary-price">R499</div>
+        </div>
+        <div class="checkout-course-meta">
+          <span class="checkout-course-name">The 1st Step Method · 90-Day R5k Roadmap</span>
+          <span class="checkout-mentor-line">Direct live mentorship with Jay & Kutloano</span>
+        </div>
+        <div class="checkout-perks-row">
+          <span class="checkout-perk-pill">⚡ 4 Stepping Stones</span>
+          <span class="checkout-perk-pill">💬 Discord Community</span>
+          <span class="checkout-perk-pill">🎙️ Weekly Live Calls</span>
+        </div>
+      </div>
+
+      <!-- Student Enrollment Form -->
+      <form class="checkout-form" id="checkout-form" autocomplete="on">
+        <div class="checkout-field-group">
+          <label class="checkout-field-label" for="student-name">
+            <span>Full Name</span>
+            <span class="field-required">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="student-name" 
+            class="checkout-input" 
+            placeholder="e.g. Sipho Ndlovu" 
+            autocomplete="name"
+            required
+          >
+          <span class="checkout-field-error" id="name-error">Please enter your full name</span>
+        </div>
+
+        <div class="checkout-field-group">
+          <label class="checkout-field-label" for="student-email">
+            <span>Student Email Address</span>
+            <span class="field-required">*</span>
+          </label>
+          <input 
+            type="email" 
+            id="student-email" 
+            class="checkout-input" 
+            placeholder="e.g. sipho@varsity.ac.za" 
+            autocomplete="email"
+            required
+          >
+          <span class="checkout-field-hint">Paystack receipt & Discord access link will be sent here</span>
+          <span class="checkout-field-error" id="email-error">Please enter a valid email address</span>
+        </div>
+
+        <div class="checkout-field-group">
+          <label class="checkout-field-label" for="student-phone">
+            <span>WhatsApp / Mobile Number</span>
+            <span class="field-optional">(Optional)</span>
+          </label>
+          <input 
+            type="tel" 
+            id="student-phone" 
+            class="checkout-input" 
+            placeholder="e.g. 072 123 4567" 
+            autocomplete="tel"
+          >
+        </div>
+
+        <!-- Action Button -->
+        <button type="submit" class="paystack-submit-btn" id="btn-paystack-submit">
+          <span class="btn-spinner" id="checkout-btn-spinner" aria-hidden="true"></span>
+          <span class="btn-text" id="checkout-btn-text">Pay R499 with Paystack</span>
+          <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Paystack Trust & Payment Methods Strip -->
+      <div class="paystack-trust-badge" id="paystack-trust-badge">
+        <div class="trust-icons-row">
+          <span class="trust-pill">Card</span>
+          <span class="trust-pill">Capitec Pay</span>
+          <span class="trust-pill">Instant EFT</span>
+          <span class="trust-pill">Apple Pay</span>
+          <span class="trust-pill">SnapScan</span>
+        </div>
+        <div class="trust-guarantee-note">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span id="trust-guarantee-text">Secured via 256-bit SSL Paystack payment gateway</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Ticket Reservation Confirmation -->
   <div class="modal-overlay" id="ticket-modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="ticket-card">
       <div class="ticket-top">
         <div class="ticket-brand">THE 1ST STEP METHOD</div>
-        <div class="ticket-hall-tag">COHORT 01 · PASS</div>
+        <div class="ticket-hall-tag" id="t-hall-tag">COHORT 01 · PASS</div>
       </div>
 
-      <div class="ticket-movie-title">COHORT 01 ENROLLMENT CONFIRMATION</div>
-      <div class="ticket-movie-sub">The 1st Step 90-Day Roadmap (R5k Target) · Jay & Kutloano</div>
+      <div class="ticket-movie-title" id="t-main-title">COHORT 01 ENROLLMENT CONFIRMATION</div>
+      <div class="ticket-movie-sub" id="t-main-sub">The 1st Step 90-Day Roadmap (R5k Target) · Jay & Kutloano</div>
 
       <div class="ticket-details-grid">
         <div class="t-col">
-          <span class="t-label">COHORT</span>
-          <span class="t-value" id="t-showtime">Cohort 01</span>
+          <span class="t-label">STUDENT</span>
+          <span class="t-value" id="t-student-name">—</span>
         </div>
         <div class="t-col">
           <span class="t-label">COHORT SPOT</span>
@@ -1074,14 +1181,14 @@
           <span class="t-value" id="t-zone">COHORT PASS</span>
         </div>
         <div class="t-col">
-          <span class="t-label">TUITION TOTAL</span>
-          <span class="t-value" id="t-price">R499</span>
+          <span class="t-label">STATUS</span>
+          <span class="t-value" id="t-price" style="color: #10b981;">PAID · R499</span>
         </div>
       </div>
 
       <div class="ticket-sightline-summary">
-        <span>Cohort Access: </span>
-        <strong id="t-metrics">90 Days to R5k/mo · Discord Community Access</strong>
+        <span>Payment Reference: </span>
+        <strong id="t-metrics">FSM-COHORT01-B3-VERIFIED</strong>
       </div>
 
       <div class="ticket-barcode-wrap">
@@ -1090,7 +1197,7 @@
           <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
           <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
-        <div class="barcode-number">COHORT01-R5K-ROADMAP</div>
+        <div class="barcode-number" id="t-barcode-num">COHORT01-PAYSTACK-VERIFIED</div>
       </div>
 
       <div class="ticket-actions">
@@ -1112,6 +1219,9 @@
       document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');
     }
   </script>
+
+  <!-- Paystack Inline Payment Gateway -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
 
   <!-- Application Logic -->
   <script src="app.js"></script>

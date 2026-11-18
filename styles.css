@@ -5275,6 +5275,332 @@ body[data-theme="light"] {
   margin-top: 6px;
 }
 
+/* ==========================================================================
+   CHECKOUT MODAL & PAYSTACK INTEGRATION STYLES
+   ========================================================================== */
+.checkout-card {
+  border-top: 4px solid var(--accent-mint);
+  max-width: 440px;
+}
+
+.checkout-summary-box {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.checkout-summary-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.checkout-spot-tag {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkout-price-tag {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent-mint);
+  letter-spacing: -0.01em;
+}
+
+.checkout-course-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout-course-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.checkout-mentor-line {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+}
+
+.checkout-perks-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.checkout-perk-pill {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.checkout-field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkout-field-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+.field-required {
+  color: #f87171;
+  margin-left: 2px;
+}
+
+.field-optional {
+  font-size: 10px;
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+.checkout-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13.5px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.32);
+  color: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.checkout-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 12.5px;
+}
+
+.checkout-input:focus {
+  border-color: #10b981;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.22);
+}
+
+.checkout-field-group.has-error .checkout-input {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+.checkout-field-hint {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+.checkout-field-error {
+  display: none;
+  font-size: 11px;
+  color: #f87171;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.checkout-field-group.has-error .checkout-field-error {
+  display: block;
+}
+
+.paystack-submit-btn {
+  width: 100%;
+  height: 50px;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  transition: all 0.25s var(--apple-spring);
+  box-shadow: var(--glass-specular-button), 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+.paystack-submit-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--glass-specular-button), 0 12px 28px rgba(16, 185, 129, 0.5);
+}
+
+.paystack-submit-btn:active {
+  transform: scale(0.97);
+}
+
+.paystack-submit-btn.loading {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.paystack-submit-btn.loading .btn-icon {
+  display: none;
+}
+
+.paystack-submit-btn.loading .btn-spinner {
+  display: inline-block;
+}
+
+.btn-spinner {
+  display: none;
+  width: 18px;
+  height: 18px;
+  border: 2.2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: paystackSpin 0.7s linear infinite;
+}
+
+@keyframes paystackSpin {
+  to { transform: rotate(360deg); }
+}
+
+.paystack-trust-badge {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.trust-icons-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.trust-pill {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.trust-guarantee-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+/* Light Mode Overrides for Checkout Modal */
+[data-theme="light"] .checkout-card {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="light"] .checkout-summary-box {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .checkout-spot-tag {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .checkout-course-name {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .checkout-mentor-line {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .checkout-perks-row {
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .checkout-perk-pill {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border-color: #a7f3d0 !important;
+}
+
+[data-theme="light"] .checkout-field-label {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .checkout-input {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .checkout-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+[data-theme="light"] .checkout-input:focus {
+  background: #ffffff !important;
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.16) !important;
+}
+
+[data-theme="light"] .checkout-field-hint {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .paystack-trust-badge {
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .trust-pill {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+[data-theme="light"] .trust-guarantee-note {
+  color: #64748b !important;
+}
+
 /* Shake Animation for Taken Seats */
 @keyframes seatShake {
   0%, 100% { transform: translateX(0); }
@@ -5316,6 +5642,23 @@ body[data-theme="light"] {
 .cinema-toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.cinema-toast.success {
+  background: rgba(6, 78, 59, 0.95);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+}
+
+.cinema-toast.success .cinema-toast-dot {
+  background: #10b981;
+}
+
+[data-theme="light"] .cinema-toast.success {
+  background: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
 }
 
 .cinema-toast-dot {

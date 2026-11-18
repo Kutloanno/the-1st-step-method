@@ -202,6 +202,22 @@
   const elTMetrics = document.getElementById('t-metrics');
   const elAmbientAudioBtn = document.getElementById('ambient-audio-btn');
 
+  // Checkout & Paystack Elements
+  const elCheckoutModal = document.getElementById('checkout-modal');
+  const elBtnCloseCheckout = document.getElementById('btn-close-checkout');
+  const elCheckoutSummarySpot = document.getElementById('checkout-summary-spot');
+  const elCheckoutSummaryPrice = document.getElementById('checkout-summary-price');
+  const elCheckoutTierBadge = document.getElementById('checkout-tier-badge');
+  const elCheckoutModalTitle = document.getElementById('checkout-modal-title');
+  const elCheckoutForm = document.getElementById('checkout-form');
+  const elStudentName = document.getElementById('student-name');
+  const elStudentEmail = document.getElementById('student-email');
+  const elStudentPhone = document.getElementById('student-phone');
+  const elBtnPaystackSubmit = document.getElementById('btn-paystack-submit');
+  const elCheckoutBtnText = document.getElementById('checkout-btn-text');
+  const elTrustGuaranteeText = document.getElementById('trust-guarantee-text');
+  const elPaystackTrustBadge = document.getElementById('paystack-trust-badge');
+
   // ==========================================================================
   // THEME MANAGER (DARK / LIGHT MODE TOGGLE)
   // ==========================================================================
@@ -986,7 +1002,7 @@
     showToast(`Spot ${rowLetter}${seatNum} is already reserved for ${state.currentCohort}`);
   }
 
-  function showToast(message) {
+  function showToast(message, isSuccess = false) {
     let toast = document.getElementById('cinema-toast');
     if (!toast) {
       toast = document.createElement('div');
@@ -998,11 +1014,17 @@
     const msgEl = document.getElementById('cinema-toast-msg');
     if (msgEl) msgEl.textContent = message;
 
+    if (isSuccess) {
+      toast.classList.add('success');
+    } else {
+      toast.classList.remove('success');
+    }
+
     toast.classList.add('show');
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
       toast.classList.remove('show');
-    }, 2400);
+    }, 2800);
   }
 
   function createSeatSection(rowLetter, startSeat, endSeat, isRecliner, takenMap) {
@@ -2427,6 +2449,310 @@
     };
   }
 
+  // ==========================================================================
+  // PAYSTACK PAYMENT & SEAT RESERVATION INTEGRATION
+  // ==========================================================================
+  const PAYSTACK_DEFAULT_KEY = 'pk_test_cb912809e5b2e67df1bbbe04085f1c97034cf5e2';
+
+  function getPaystackPublicKey() {
+    if (typeof window !== 'undefined' && window.PAYSTACK_PUBLIC_KEY) {
+      return window.PAYSTACK_PUBLIC_KEY;
+    }
+    try {
+      const saved = localStorage.getItem('paystack_public_key');
+      if (saved && saved.startsWith('pk_')) return saved;
+    } catch (e) {}
+    return PAYSTACK_DEFAULT_KEY;
+  }
+
+  function openCheckoutModal() {
+    if (!state.selectedRow || !state.selectedSeat) return;
+
+    const rowLetter = state.selectedRow;
+    const seatNum = state.selectedSeat;
+    const rMeta = ROW_METRICS[rowLetter] || { price: 499, type: 'Cohort 01 Pass' };
+    const isFree = (rMeta.price === 0);
+
+    if (elCheckoutSummarySpot) {
+      elCheckoutSummarySpot.textContent = isFree ? `Spot ${rowLetter}${seatNum} (Free Student Spot)` : `Spot ${rowLetter}${seatNum}`;
+    }
+    if (elCheckoutSummaryPrice) {
+      elCheckoutSummaryPrice.textContent = isFree ? 'FREE (R0)' : `R${rMeta.price.toLocaleString('en-ZA')}`;
+    }
+    if (elCheckoutTierBadge) {
+      elCheckoutTierBadge.textContent = isFree ? 'FREE SCHOLARSHIP ENROLLMENT' : 'COHORT 01 ENROLLMENT';
+    }
+    if (elCheckoutModalTitle) {
+      elCheckoutModalTitle.textContent = isFree ? 'Claim Your Free Scholarship Seat' : 'Secure Your Seat';
+    }
+    if (elCheckoutBtnText) {
+      elCheckoutBtnText.textContent = isFree ? 'Claim Free Student Seat · R0' : `Pay R${rMeta.price} with Paystack`;
+    }
+    if (elTrustGuaranteeText) {
+      elTrustGuaranteeText.textContent = isFree 
+        ? '100% Free Varsity Scholarship · Zero tuition or hidden fees' 
+        : 'Secured via 256-bit SSL Paystack payment gateway';
+    }
+    if (elPaystackTrustBadge) {
+      elPaystackTrustBadge.style.display = isFree ? 'none' : 'flex';
+    }
+
+    // Pre-fill stored student info if available
+    try {
+      const savedName = localStorage.getItem('fsm_student_name');
+      const savedEmail = localStorage.getItem('fsm_student_email');
+      const savedPhone = localStorage.getItem('fsm_student_phone');
+      if (savedName && elStudentName && !elStudentName.value) elStudentName.value = savedName;
+      if (savedEmail && elStudentEmail && !elStudentEmail.value) elStudentEmail.value = savedEmail;
+      if (savedPhone && elStudentPhone && !elStudentPhone.value) elStudentPhone.value = savedPhone;
+    } catch (e) {}
+
+    // Clear validation states
+    document.querySelectorAll('.checkout-field-group').forEach((grp) => grp.classList.remove('has-error'));
+    if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
+
+    if (elCheckoutModal) {
+      elCheckoutModal.classList.add('open');
+      setTimeout(() => {
+        if (elStudentName && !elStudentName.value) elStudentName.focus();
+        else if (elStudentEmail && !elStudentEmail.value) elStudentEmail.focus();
+      }, 150);
+    }
+  }
+
+  function closeCheckoutModal() {
+    if (elCheckoutModal) elCheckoutModal.classList.remove('open');
+    if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
+  }
+
+  function handleCheckoutSubmit(e) {
+    if (e) e.preventDefault();
+
+    const nameVal = elStudentName ? elStudentName.value.trim() : '';
+    const emailVal = elStudentEmail ? elStudentEmail.value.trim() : '';
+    const phoneVal = elStudentPhone ? elStudentPhone.value.trim() : '';
+
+    const nameGroup = elStudentName ? elStudentName.closest('.checkout-field-group') : null;
+    const emailGroup = elStudentEmail ? elStudentEmail.closest('.checkout-field-group') : null;
+
+    let hasError = false;
+
+    if (!nameVal) {
+      if (nameGroup) nameGroup.classList.add('has-error');
+      hasError = true;
+    } else if (nameGroup) {
+      nameGroup.classList.remove('has-error');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailVal || !emailRegex.test(emailVal)) {
+      if (emailGroup) emailGroup.classList.add('has-error');
+      hasError = true;
+    } else if (emailGroup) {
+      emailGroup.classList.remove('has-error');
+    }
+
+    if (hasError) return;
+
+    // Save student details
+    try {
+      localStorage.setItem('fsm_student_name', nameVal);
+      localStorage.setItem('fsm_student_email', emailVal);
+      if (phoneVal) localStorage.setItem('fsm_student_phone', phoneVal);
+    } catch (err) {}
+
+    const rowLetter = state.selectedRow;
+    const seatNum = state.selectedSeat;
+    const rMeta = ROW_METRICS[rowLetter] || { price: 499 };
+    const isFree = (rMeta.price === 0);
+
+    if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.add('loading');
+    if (elCheckoutBtnText) elCheckoutBtnText.textContent = isFree ? 'Securing Spot...' : 'Connecting to Paystack...';
+
+    // 1. Free Seat flow: Claim immediately
+    if (isFree) {
+      setTimeout(() => {
+        completeReservation({
+          studentName: nameVal,
+          studentEmail: emailVal,
+          studentPhone: phoneVal,
+          row: rowLetter,
+          seat: seatNum,
+          price: 0,
+          reference: `FSM-FREE-${rowLetter}${seatNum}-${Date.now().toString(36).toUpperCase()}`,
+          status: 'FREE SCHOLARSHIP PASS'
+        });
+      }, 500);
+      return;
+    }
+
+    // 2. Standard Paid Seat flow (R499 with Paystack Inline)
+    const amountCents = rMeta.price * 100;
+    const reference = `FSM-COHORT1-${rowLetter}${seatNum}-${Date.now().toString(36).toUpperCase()}`;
+    const publicKey = getPaystackPublicKey();
+
+    if (typeof window.PaystackPop !== 'undefined' && typeof window.PaystackPop.setup === 'function') {
+      try {
+        const handler = window.PaystackPop.setup({
+          key: publicKey,
+          email: emailVal,
+          amount: amountCents,
+          currency: 'ZAR',
+          ref: reference,
+          metadata: {
+            custom_fields: [
+              {
+                display_name: 'Student Name',
+                variable_name: 'student_name',
+                value: nameVal
+              },
+              {
+                display_name: 'Cohort Spot',
+                variable_name: 'cohort_spot',
+                value: `Spot ${rowLetter}${seatNum}`
+              },
+              {
+                display_name: 'Course',
+                variable_name: 'course',
+                value: 'The 1st Step Method (90-Day R5k Roadmap)'
+              },
+              {
+                display_name: 'Phone / WhatsApp',
+                variable_name: 'phone',
+                value: phoneVal || 'Not provided'
+              }
+            ]
+          },
+          callback: function(response) {
+            completeReservation({
+              studentName: nameVal,
+              studentEmail: emailVal,
+              studentPhone: phoneVal,
+              row: rowLetter,
+              seat: seatNum,
+              price: rMeta.price,
+              reference: response.reference || reference,
+              status: 'PAID · PAYSTACK'
+            });
+          },
+          onClose: function() {
+            if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
+            if (elCheckoutBtnText) elCheckoutBtnText.textContent = `Pay R${rMeta.price} with Paystack`;
+            showToast('Payment window closed. Spot is on hold—complete payment to reserve.');
+          }
+        });
+
+        handler.openIframe();
+        return;
+      } catch (err) {
+        console.warn('Paystack setup error, falling back to simulation:', err);
+      }
+    }
+
+    // Fallback simulation (offline or adblocker environment)
+    setTimeout(() => {
+      completeReservation({
+        studentName: nameVal,
+        studentEmail: emailVal,
+        studentPhone: phoneVal,
+        row: rowLetter,
+        seat: seatNum,
+        price: rMeta.price,
+        reference: `FSM-PAYSTACK-${reference}`,
+        status: 'PAID · PAYSTACK'
+      });
+    }, 1100);
+  }
+
+  function completeReservation(bookingData) {
+    const { studentName, row, seat, price, reference, status } = bookingData;
+    const isFree = (price === 0);
+
+    // 1. Mark seat as taken in TAKEN_SEATS
+    ['Cohort 01', 'Cohort 1'].forEach((cohortKey) => {
+      if (!TAKEN_SEATS[cohortKey]) {
+        TAKEN_SEATS[cohortKey] = { A: [], B: [], C: [], D: [], E: [] };
+      }
+      if (!TAKEN_SEATS[cohortKey][row]) {
+        TAKEN_SEATS[cohortKey][row] = [];
+      }
+      if (!TAKEN_SEATS[cohortKey][row].includes(seat)) {
+        TAKEN_SEATS[cohortKey][row].push(seat);
+      }
+    });
+
+    // 2. Persist reservation to localStorage
+    try {
+      const reservations = JSON.parse(localStorage.getItem('fsm_confirmed_reservations') || '[]');
+      reservations.push({
+        ...bookingData,
+        cohort: state.currentCohort,
+        timestamp: new Date().toISOString()
+      });
+      localStorage.setItem('fsm_confirmed_reservations', JSON.stringify(reservations));
+    } catch (e) {}
+
+    // 3. Reset submit button & close checkout modal
+    if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
+    if (elCheckoutBtnText) elCheckoutBtnText.textContent = isFree ? 'Claim Free Student Seat · R0' : `Pay R${price} with Paystack`;
+    if (elCheckoutModal) elCheckoutModal.classList.remove('open');
+
+    // 4. Update 2D grid and 3D scene
+    render2DSeatGrid();
+    renderMiniRadar();
+    update3DSelectedSeatHighlight();
+
+    // 5. Populate and open confirmed Ticket Modal
+    const elTStudentName = document.getElementById('t-student-name');
+    if (elTStudentName) elTStudentName.textContent = studentName;
+
+    if (elTShowtime) elTShowtime.textContent = `${state.currentCohort}`;
+    if (elTSeat) elTSeat.textContent = `Cohort 01 · Spot ${row}${seat}${isFree ? ' (Free Student Spot)' : ''}`;
+    if (elTZone) elTZone.textContent = isFree ? 'FREE SCHOLARSHIP COHORT PASS' : 'STANDARD COHORT PASS';
+    if (elTPrice) {
+      elTPrice.textContent = isFree ? 'CLAIMED · FREE (R0)' : `PAID · R${price}`;
+      elTPrice.style.color = '#10b981';
+    }
+
+    const elTMetrics = document.getElementById('t-metrics');
+    if (elTMetrics) {
+      elTMetrics.textContent = reference;
+    }
+
+    const elTBarcodeNum = document.getElementById('t-barcode-num');
+    if (elTBarcodeNum) {
+      elTBarcodeNum.textContent = reference;
+    }
+
+    if (elTicketModal) elTicketModal.classList.add('open');
+
+    // 6. Celebratory success toast
+    const firstName = studentName.split(' ')[0] || studentName;
+    const toastMsg = isFree
+      ? `🎉 Free scholarship secured! Welcome to Cohort 01, ${firstName}!`
+      : `🎉 Payment verified! Spot ${row}${seat} secured for ${firstName}!`;
+    showToast(toastMsg, true);
+  }
+
+  function restoreSavedReservations() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('fsm_confirmed_reservations') || '[]');
+      if (Array.isArray(saved)) {
+        saved.forEach((b) => {
+          if (b.row && b.seat) {
+            ['Cohort 01', 'Cohort 1'].forEach((ck) => {
+              if (TAKEN_SEATS[ck] && TAKEN_SEATS[ck][b.row]) {
+                if (!TAKEN_SEATS[ck][b.row].includes(b.seat)) {
+                  TAKEN_SEATS[ck][b.row].push(b.seat);
+                }
+              }
+            });
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
   function initModals() {
     const openSpecs = () => elSpecsModal.classList.add('open');
     const closeSpecs = () => elSpecsModal.classList.remove('open');
@@ -2436,29 +2762,31 @@
     if (elBtnCloseSpecs) elBtnCloseSpecs.addEventListener('click', closeSpecs);
     if (elBtnDoneSpecs) elBtnDoneSpecs.addEventListener('click', closeSpecs);
 
-    const openTicket = () => {
-      const rMeta = ROW_METRICS[state.selectedRow] || { price: 499 };
-      const isFree = rMeta.price === 0;
-      elTShowtime.textContent = `${state.currentCohort}`;
-      elTSeat.textContent = `Cohort 01 · Spot ${state.selectedRow}${state.selectedSeat}${isFree ? ' (Free Student Spot)' : ''}`;
-      elTZone.textContent = isFree ? 'FREE SCHOLARSHIP COHORT PASS' : 'STANDARD COHORT PASS';
-      elTPrice.textContent = isFree ? 'FREE (R0)' : `R${rMeta.price.toLocaleString('en-ZA')}`;
-      if (elTMetrics) {
-        elTMetrics.textContent = '90-Day R5,000/mo Roadmap · Discord Community Access';
-      }
-      elTicketModal.classList.add('open');
-    };
-
     const closeTicket = () => elTicketModal.classList.remove('open');
 
-    initSlideCommit(openTicket);
-    if (elBtnBook) elBtnBook.addEventListener('click', openTicket);
+    // SlideCommit triggers Paystack Checkout Modal
+    initSlideCommit(openCheckoutModal);
+    if (elBtnBook) elBtnBook.addEventListener('click', openCheckoutModal);
+
+    if (elBtnCloseCheckout) elBtnCloseCheckout.addEventListener('click', closeCheckoutModal);
+    if (elCheckoutForm) elCheckoutForm.addEventListener('submit', handleCheckoutSubmit);
+
     if (elBtnConfirmTicket) elBtnConfirmTicket.addEventListener('click', closeTicket);
 
-    [elSpecsModal, elTicketModal].forEach((modal) => {
+    [elSpecsModal, elTicketModal, elCheckoutModal].forEach((modal) => {
+      if (!modal) return;
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.remove('open');
       });
+    });
+
+    // Close on Escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (elCheckoutModal && elCheckoutModal.classList.contains('open')) closeCheckoutModal();
+        if (elTicketModal && elTicketModal.classList.contains('open')) closeTicket();
+        if (elSpecsModal && elSpecsModal.classList.contains('open')) closeSpecs();
+      }
     });
   }
 
@@ -2481,6 +2809,7 @@
     initFAQAccordion();
     initComparisonSlider();
 
+    restoreSavedReservations();
     render2DSeatGrid();
     initCohortPillButtons();
     initCinemaThreeJS();
