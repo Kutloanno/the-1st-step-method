@@ -2494,6 +2494,7 @@
 
     const nameGroup = elStudentName ? elStudentName.closest('.checkout-field-group') : null;
     const emailGroup = elStudentEmail ? elStudentEmail.closest('.checkout-field-group') : null;
+    const phoneGroup = elStudentPhone ? elStudentPhone.closest('.checkout-field-group') : null;
 
     let hasError = false;
 
@@ -2510,6 +2511,14 @@
       hasError = true;
     } else if (emailGroup) {
       emailGroup.classList.remove('has-error');
+    }
+
+    const phoneClean = phoneVal.replace(/[\s\-\(\)\+]/g, '');
+    if (!phoneVal || phoneClean.length < 9) {
+      if (phoneGroup) phoneGroup.classList.add('has-error');
+      hasError = true;
+    } else if (phoneGroup) {
+      phoneGroup.classList.remove('has-error');
     }
 
     if (hasError) return;
