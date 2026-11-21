@@ -107,6 +107,7 @@ app.post('/api/paystack/initialize', async (req, res) => {
     };
 
     const hasLiveSecret = PAYSTACK_SECRET_KEY && !PAYSTACK_SECRET_KEY.includes('placeholder');
+    const callbackUrl = process.env.PAYSTACK_CALLBACK_URL || `${req.protocol}://${req.get('host')}/success`;
 
     if (hasLiveSecret) {
       // Call official Paystack initialize endpoint
@@ -120,6 +121,7 @@ app.post('/api/paystack/initialize', async (req, res) => {
           email: email.trim(),
           amount: amountInCents,
           currency: 'ZAR',
+          callback_url: callbackUrl,
           metadata
         })
       });
@@ -292,6 +294,19 @@ app.post('/api/paystack/webhook', (req, res) => {
   }
 });
 
+// Webhook GET health check (returns active status for browser / testing)
+app.get('/api/paystack/webhook', (req, res) => {
+  res.json({
+    status: true,
+    message: 'Paystack webhook endpoint active. Send incoming events via POST with x-paystack-signature header.'
+  });
+});
+
+// Dedicated Live Callback / Success Page
+app.get('/success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'success.html'));
+});
+
 // Route to get confirmed reservations
 app.get('/api/reservations', (req, res) => {
   const reservations = getStoredReservations();
@@ -308,15 +323,20 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log('==================================================');
-  console.log(` Meridian Cinema (The 1st Step Method) Server`);
-  console.log(` Listening on: http://localhost:${PORT}`);
-  console.log(` Paystack endpoints active:`);
-  console.log(`   - POST /api/paystack/initialize`);
-  console.log(`   - GET  /api/paystack/verify/:reference`);
-  console.log(`   - POST /api/paystack/webhook`);
-  console.log(`   - GET  /vendor/paystack-inline.js`);
-  console.log('==================================================');
-});
+// Export app for Vercel Serverless Function deployment
+module.exports = app;
+
+// Start Server locally if run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log('==================================================');
+    console.log(` Meridian Cinema (The 1st Step Method) Server`);
+    console.log(` Listening on: http://localhost:${PORT}`);
+    console.log(` Paystack endpoints active:`);
+    console.log(`   - Live Callback: GET  http://localhost:${PORT}/success`);
+    console.log(`   - Live Webhook:  POST http://localhost:${PORT}/api/paystack/webhook`);
+    console.log(`   - Initialize:    POST http://localhost:${PORT}/api/paystack/initialize`);
+    console.log(`   - Verify:        GET  http://localhost:${PORT}/api/paystack/verify/:reference`);
+    console.log('==================================================');
+  });
+}

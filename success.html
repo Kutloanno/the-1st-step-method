@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Payment Confirmed · The 1st Step Method</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0b0e;
+      --card-bg: rgba(26, 29, 36, 0.85);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --accent-mint: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+    }
+
+    [data-theme="light"] {
+      --bg-dark: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: rgba(0, 0, 0, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --accent-mint: #059669;
+      --accent-glow: rgba(5, 150, 105, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glow */
+    .ambient-glow {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .success-container {
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .ticket-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-top: 4px solid var(--accent-mint);
+      border-radius: 28px;
+      padding: 28px 24px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .ticket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .brand-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .status-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-mint);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-mint);
+      display: inline-block;
+    }
+
+    .hero-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+
+    .hero-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-bottom: 20px;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: rgba(125, 125, 125, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .detail-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .detail-value {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .detail-value.highlight {
+      color: var(--accent-mint);
+    }
+
+    .reference-box {
+      background: rgba(16, 185, 129, 0.06);
+      border: 1px dashed rgba(16, 185, 129, 0.3);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .ref-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ref-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .ref-code {
+      font-family: monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-mint);
+      margin-top: 2px;
+    }
+
+    .copy-btn {
+      background: rgba(16, 185, 129, 0.15);
+      border: none;
+      color: var(--accent-mint);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+
+    .barcode-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .simulated-barcode {
+      display: flex;
+      gap: 3px;
+      height: 38px;
+      align-items: center;
+      padding: 4px 12px;
+      background: #ffffff;
+      border-radius: 6px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .simulated-barcode span {
+      display: inline-block;
+      background: #000000;
+      height: 100%;
+      width: 2px;
+    }
+
+    .simulated-barcode span:nth-child(2n) { width: 3px; }
+    .simulated-barcode span:nth-child(3n) { width: 1.5px; }
+    .simulated-barcode span:nth-child(5n) { width: 4px; }
+
+    .barcode-caption {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    .action-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      height: 48px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      height: 44px;
+      border-radius: 22px;
+      background: rgba(125, 125, 125, 0.08);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(125, 125, 125, 0.16);
+    }
+
+    /* Loading state */
+    .loader-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 0;
+      gap: 14px;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(16, 185, 129, 0.2);
+      border-top-color: var(--accent-mint);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .toast-pill {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(16, 185, 129, 0.95);
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    .toast-pill.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <div class="success-container">
+    <div class="ticket-card" id="ticket-card">
+      
+      <!-- Verification Spinner (Initial state) -->
+      <div class="loader-wrap" id="loader-wrap">
+        <div class="spinner"></div>
+        <div style="font-size: 14px; font-weight: 600; color: var(--text-secondary);">Verifying payment with Paystack...</div>
+      </div>
+
+      <!-- Verified Content (Revealed after verification) -->
+      <div id="verified-content" style="display: none;">
+        <div class="ticket-header">
+          <span class="brand-title">THE 1ST STEP METHOD</span>
+          <span class="status-badge">
+            <span class="status-dot"></span>
+            <span>VERIFIED & PAID</span>
+          </span>
+        </div>
+
+        <h1 class="hero-title" id="ticket-hero-title">Welcome to Cohort 01!</h1>
+        <p class="hero-sub" id="ticket-hero-sub">Your payment has been verified. Your seat in the live cohort is locked in.</p>
+
+        <div class="details-grid">
+          <div class="detail-col">
+            <span class="detail-label">STUDENT</span>
+            <span class="detail-value" id="disp-student-name">Student</span>
+          </div>
+          <div class="detail-col">
+            <span class="detail-label">COHORT SPOT</span>
+            <span class="detail-value highlight" id="disp-seat">Spot B3 Reserved</span>
+          </div>
+          <div class="detail-col">
+            <span class="detail-label">TUITION</span>
+            <span class="detail-value highlight" id="disp-price">R499 (Paid)</span>
+          </div>
+          <div class="detail-col">
+            <span class="detail-label">COURSE</span>
+            <span class="detail-value">90-Day R5k Roadmap</span>
+          </div>
+        </div>
+
+        <div class="reference-box">
+          <div class="ref-meta">
+            <span class="ref-label">Paystack Transaction Ref</span>
+            <span class="ref-code" id="disp-reference">FSM-COHORT1-B3</span>
+          </div>
+          <button class="copy-btn" id="btn-copy-ref">Copy</button>
+        </div>
+
+        <div class="barcode-wrap">
+          <div class="simulated-barcode">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="barcode-caption" id="disp-barcode">COHORT01-PAYSTACK-VERIFIED</div>
+        </div>
+
+        <div class="action-stack">
+          <a href="https://discord.gg" target="_blank" rel="noopener" class="btn-primary" id="btn-discord">
+            <span>💬 Join Student Discord Community</span>
+          </a>
+          <a href="/#seats" class="btn-secondary">
+            <span>🏛️ View Your Spot in 3D Auditorium</span>
+          </a>
+          <button class="btn-secondary" onclick="window.print()">
+            <span>📄 Print / Save Pass</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast-pill" id="toast-pill">Reference copied to clipboard!</div>
+
+  <script>
+    // Theme sync
+    try {
+      const savedTheme = localStorage.getItem('first_step_theme');
+      if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+    } catch(e) {}
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const reference = urlParams.get('reference') || urlParams.get('trxref');
+
+    const loaderWrap = document.getElementById('loader-wrap');
+    const verifiedContent = document.getElementById('verified-content');
+    const dispStudentName = document.getElementById('disp-student-name');
+    const dispSeat = document.getElementById('disp-seat');
+    const dispPrice = document.getElementById('disp-price');
+    const dispReference = document.getElementById('disp-reference');
+    const dispBarcode = document.getElementById('disp-barcode');
+    const btnCopyRef = document.getElementById('btn-copy-ref');
+    const toastPill = document.getElementById('toast-pill');
+
+    function showToast(msg) {
+      toastPill.textContent = msg;
+      toastPill.classList.add('show');
+      setTimeout(() => toastPill.classList.remove('show'), 2200);
+    }
+
+    if (btnCopyRef) {
+      btnCopyRef.addEventListener('click', () => {
+        const text = dispReference.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('Reference copied to clipboard!');
+        }).catch(() => {
+          showToast('Could not copy automatically');
+        });
+      });
+    }
+
+    async function verifyAndDisplay() {
+      // Restore previously saved name
+      let studentName = 'Student';
+      try {
+        const saved = localStorage.getItem('fsm_student_name');
+        if (saved) studentName = saved;
+      } catch (e) {}
+
+      if (!reference) {
+        // No reference in query parameters (direct visit)
+        loaderWrap.style.display = 'none';
+        verifiedContent.style.display = 'block';
+        document.getElementById('ticket-hero-title').textContent = 'Cohort Enrollment Status';
+        document.getElementById('ticket-hero-sub').textContent = 'View your active enrollment or return to the 3D seat selector.';
+        dispStudentName.textContent = studentName;
+        dispSeat.textContent = 'Cohort 01 Pass';
+        dispPrice.textContent = 'Enrolled';
+        dispReference.textContent = 'DIRECT_VISIT';
+        dispBarcode.textContent = 'COHORT01-ENROLLED';
+        return;
+      }
+
+      try {
+        // Call backend verify endpoint: GET /api/paystack/verify/:reference
+        const res = await fetch(`/api/paystack/verify/${encodeURIComponent(reference)}`);
+        const json = await res.json();
+
+        loaderWrap.style.display = 'none';
+        verifiedContent.style.display = 'block';
+
+        if (json.status && (!json.data || json.data.status === 'success')) {
+          const data = json.data || {};
+          const metadata = data.metadata || {};
+
+          if (metadata.student_name) studentName = metadata.student_name;
+          else if (data.customer?.email) studentName = data.customer.email.split('@')[0];
+
+          dispStudentName.textContent = studentName;
+          
+          if (metadata.row && metadata.seat) {
+            dispSeat.textContent = `Spot ${metadata.row}${metadata.seat} Reserved`;
+            // Also save to localStorage confirmed reservations
+            try {
+              const resList = JSON.parse(localStorage.getItem('fsm_confirmed_reservations') || '[]');
+              if (!resList.some(r => r.reference === reference)) {
+                resList.push({
+                  reference,
+                  studentName,
+                  row: metadata.row,
+                  seat: Number(metadata.seat),
+                  cohort: metadata.cohort || 'Cohort 01',
+                  price: 499
+                });
+                localStorage.setItem('fsm_confirmed_reservations', JSON.stringify(resList));
+              }
+            } catch(e) {}
+          } else {
+            dispSeat.textContent = 'Cohort 01 Spot Reserved';
+          }
+
+          const amountPaid = data.amount ? `R${data.amount / 100}` : 'R499';
+          dispPrice.textContent = `${amountPaid} (Paid)`;
+          dispReference.textContent = reference;
+          dispBarcode.textContent = reference;
+        } else {
+          document.getElementById('ticket-hero-title').textContent = 'Verification Pending';
+          document.getElementById('ticket-hero-sub').textContent = json.message || 'We received your transaction and are processing the confirmation.';
+          dispReference.textContent = reference;
+        }
+      } catch (err) {
+        console.error('Verify error:', err);
+        loaderWrap.style.display = 'none';
+        verifiedContent.style.display = 'block';
+        dispStudentName.textContent = studentName;
+        dispReference.textContent = reference;
+      }
+    }
+
+    verifyAndDisplay();
+  </script>
+</body>
+</html>
