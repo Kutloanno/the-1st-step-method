@@ -1030,7 +1030,7 @@
         <div class="checkout-field-group">
           <label class="checkout-field-label" for="student-phone">
             <span>WhatsApp / Mobile Number</span>
-            <span class="field-optional">(Optional)</span>
+            <span class="field-required">*</span>
           </label>
           <input 
             type="tel" 
@@ -1038,7 +1038,9 @@
             class="checkout-input" 
             placeholder="e.g. 072 123 4567" 
             autocomplete="tel"
+            required
           >
+          <span class="checkout-field-error" id="phone-error">Please enter your WhatsApp / mobile number</span>
         </div>
 
         <!-- Action Button -->
