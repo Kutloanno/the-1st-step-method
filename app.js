@@ -111,13 +111,7 @@
 
   // Global Application State
   const state = {
-    theme: (function() {
-      try {
-        const saved = localStorage.getItem('first_step_theme');
-        if (saved === 'dark' || saved === 'light') return saved;
-      } catch (e) {}
-      return 'light';
-    })(),
+    theme: 'light',
     currentView: 'planet-hub', // 'planet-hub' | 'course-pages' | 'seats-page'
     currentStageIndex: 0,
     currentSubpageIndex: 0,
@@ -219,52 +213,28 @@
   const elPaystackTrustBadge = document.getElementById('paystack-trust-badge');
 
   // ==========================================================================
-  // THEME MANAGER (DARK / LIGHT MODE TOGGLE)
+  // THEME ENFORCEMENT (PERMANENT MODERN STUDIO LIGHT MODE)
   // ==========================================================================
-  function applyTheme(theme) {
-    state.theme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    document.body.setAttribute('data-theme', theme);
-    document.documentElement.classList.remove('dark-theme', 'light-theme');
-    document.documentElement.classList.add(`${theme}-theme`);
-    document.body.classList.remove('dark-theme', 'light-theme');
-    document.body.classList.add(`${theme}-theme`);
+  function applyTheme() {
+    state.theme = 'light';
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.body.setAttribute('data-theme', 'light');
+    document.documentElement.classList.remove('dark-theme');
+    document.documentElement.classList.add('light-theme');
+    document.body.classList.remove('dark-theme');
+    document.body.classList.add('light-theme');
 
     try {
-      localStorage.setItem('first_step_theme', theme);
+      localStorage.removeItem('first_step_theme');
     } catch (e) {}
 
-    updateThemeToggleButtonsUI();
     if (typeof updateScrubberUI === 'function') {
       updateScrubberUI();
     }
   }
 
-  function toggleTheme() {
-    const newTheme = state.theme === 'dark' ? 'light' : 'dark';
-    applyTheme(newTheme);
-  }
-
-  function updateThemeToggleButtonsUI() {
-    const isDark = state.theme === 'dark';
-    const buttons = document.querySelectorAll('[data-theme-toggle]');
-    buttons.forEach((btn) => {
-      btn.setAttribute('aria-checked', isDark ? 'true' : 'false');
-      btn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
-      btn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
-    });
-  }
-
   function initTheme() {
-    applyTheme(state.theme);
-    document.addEventListener('click', (e) => {
-      const toggleBtn = e.target.closest('[data-theme-toggle]');
-      if (toggleBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleTheme();
-      }
-    });
+    applyTheme();
   }
 
   // ==========================================================================
@@ -277,7 +247,7 @@
     [viewPlanetHub, viewCoursePages, viewSeatsPage].forEach(v => v.classList.remove('active'));
 
     // Re-apply active theme classes across views
-    applyTheme(state.theme);
+    applyTheme();
 
     if (viewName === 'planet-hub') {
       viewPlanetHub.classList.add('active');
@@ -783,25 +753,15 @@
 
       if (dist < 0.6) {
         tick.classList.add('center-active');
-        tick.style.backgroundColor = state.theme === 'dark' ? '#ffffff' : '#111111';
+        tick.style.backgroundColor = '#111111';
       } else {
         tick.classList.remove('center-active');
-        if (state.theme === 'dark') {
-          if (dist <= 2.5) {
-            tick.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
-          } else if (dist <= 5.0) {
-            tick.style.backgroundColor = 'rgba(255, 255, 255, 0.45)';
-          } else {
-            tick.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-          }
+        if (dist <= 2.5) {
+          tick.style.backgroundColor = '#4b5563';
+        } else if (dist <= 5.0) {
+          tick.style.backgroundColor = '#9ca3af';
         } else {
-          if (dist <= 2.5) {
-            tick.style.backgroundColor = '#4b5563';
-          } else if (dist <= 5.0) {
-            tick.style.backgroundColor = '#9ca3af';
-          } else {
-            tick.style.backgroundColor = '#d4d4d4';
-          }
+          tick.style.backgroundColor = '#d4d4d4';
         }
       }
     });
