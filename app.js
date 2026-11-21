@@ -2586,82 +2586,112 @@
       return;
     }
 
-    // 2. Standard Paid Seat flow (R499 with Paystack Inline)
-    const amountCents = rMeta.price * 100;
-    const reference = `FSM-COHORT1-${rowLetter}${seatNum}-${Date.now().toString(36).toUpperCase()}`;
-    const publicKey = getPaystackPublicKey();
-
-    if (typeof window.PaystackPop !== 'undefined' && typeof window.PaystackPop.setup === 'function') {
+    // 2. Standard Paid Seat flow (R499 via Backend Initialize -> PaystackPop.checkout -> Backend Verify)
+    (async () => {
       try {
-        const handler = window.PaystackPop.setup({
-          key: publicKey,
-          email: emailVal,
-          amount: amountCents,
-          currency: 'ZAR',
-          ref: reference,
-          metadata: {
-            custom_fields: [
-              {
-                display_name: 'Student Name',
-                variable_name: 'student_name',
-                value: nameVal
-              },
-              {
-                display_name: 'Cohort Spot',
-                variable_name: 'cohort_spot',
-                value: `Spot ${rowLetter}${seatNum}`
-              },
-              {
-                display_name: 'Course',
-                variable_name: 'course',
-                value: 'The 1st Step Method (90-Day R5k Roadmap)'
-              },
-              {
-                display_name: 'Phone / WhatsApp',
-                variable_name: 'phone',
-                value: phoneVal || 'Not provided'
-              }
-            ]
+        // Step 1: Call backend initialize route to get data.access_code
+        const initResponse = await fetch('/api/paystack/initialize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
           },
-          callback: function(response) {
-            completeReservation({
-              studentName: nameVal,
-              studentEmail: emailVal,
-              studentPhone: phoneVal,
-              row: rowLetter,
-              seat: seatNum,
-              price: rMeta.price,
-              reference: response.reference || reference,
-              status: 'PAID · PAYSTACK'
-            });
-          },
-          onClose: function() {
-            if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
-            if (elCheckoutBtnText) elCheckoutBtnText.textContent = `Pay R${rMeta.price} with Paystack`;
-            showToast('Payment window closed. Spot is on hold—complete payment to reserve.');
-          }
+          body: JSON.stringify({
+            email: emailVal,
+            amount: rMeta.price, // sends price in Rands; server computes priceInRands * 100
+            studentName: nameVal,
+            studentPhone: phoneVal,
+            row: rowLetter,
+            seat: seatNum,
+            cohort: state.currentCohort
+          })
         });
 
-        handler.openIframe();
-        return;
-      } catch (err) {
-        console.warn('Paystack setup error, falling back to simulation:', err);
-      }
-    }
+        const initResult = await initResponse.json();
 
-    // Fallback simulation (offline or adblocker environment)
-    setTimeout(() => {
-      completeReservation({
-        studentName: nameVal,
-        studentEmail: emailVal,
-        studentPhone: phoneVal,
-        row: rowLetter,
-        seat: seatNum,
-        price: rMeta.price,
-        reference: `FSM-PAYSTACK-${reference}`,
-        status: 'PAID · PAYSTACK'
-      });
-    }, 1100);
+        if (!initResult.status || !initResult.data || !initResult.data.access_code) {
+          throw new Error(initResult.message || 'Payment initialization failed');
+        }
+
+        const accessCode = initResult.data.access_code;
+        const fallbackRef = initResult.data.reference || `FSM-COHORT1-${rowLetter}${seatNum}-${Date.now().toString(36).toUpperCase()}`;
+
+        // Step 2: Handle checkout via @paystack/inline-js PaystackPop
+        // If simulation access_code is returned (when PAYSTACK_SECRET_KEY is in dev mode)
+        if (accessCode.startsWith('sim_acc_')) {
+          if (elCheckoutBtnText) elCheckoutBtnText.textContent = 'Processing Dev Simulation...';
+          setTimeout(async () => {
+            // Call backend verify route
+            const verifyRes = await fetch(`/api/paystack/verify/${encodeURIComponent(fallbackRef)}`);
+            const verifyData = await verifyRes.json();
+            if (verifyData.status) {
+              completeReservation({
+                studentName: nameVal,
+                studentEmail: emailVal,
+                studentPhone: phoneVal,
+                row: rowLetter,
+                seat: seatNum,
+                price: rMeta.price,
+                reference: fallbackRef,
+                status: 'PAID · PAYSTACK VERIFIED'
+              });
+            } else {
+              throw new Error(verifyData.message || 'Verification failed');
+            }
+          }, 1100);
+          return;
+        }
+
+        // Standard @paystack/inline-js flow
+        if (typeof PaystackPop !== 'undefined') {
+          const popup = new PaystackPop();
+          popup.checkout({
+            accessCode: accessCode,
+            onSuccess: async (transaction) => {
+              const txRef = (transaction && (transaction.reference || transaction.trxref)) || fallbackRef;
+              if (elCheckoutBtnText) elCheckoutBtnText.textContent = 'Verifying with Paystack...';
+
+              try {
+                // Step 3: Inside onSuccess, send transaction.reference to verify route before confirmation
+                const verifyResponse = await fetch(`/api/paystack/verify/${encodeURIComponent(txRef)}`);
+                const verifyResult = await verifyResponse.json();
+
+                if (verifyResult.status && (!verifyResult.data || verifyResult.data.status === 'success')) {
+                  completeReservation({
+                    studentName: nameVal,
+                    studentEmail: emailVal,
+                    studentPhone: phoneVal,
+                    row: rowLetter,
+                    seat: seatNum,
+                    price: rMeta.price,
+                    reference: txRef,
+                    status: 'PAID · PAYSTACK VERIFIED'
+                  });
+                } else {
+                  throw new Error(verifyResult.message || 'Payment verification failed');
+                }
+              } catch (verifyErr) {
+                console.error('Payment verification failed:', verifyErr);
+                showToast('Payment verification failed: ' + (verifyErr.message || 'Unknown error'), false);
+                if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
+                if (elCheckoutBtnText) elCheckoutBtnText.textContent = `Pay R${rMeta.price} with Paystack`;
+              }
+            },
+            onCancel: () => {
+              if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
+              if (elCheckoutBtnText) elCheckoutBtnText.textContent = `Pay R${rMeta.price} with Paystack`;
+              showToast('Payment window closed. Spot is on hold—complete payment to reserve.');
+            }
+          });
+        } else {
+          throw new Error('Paystack inline SDK not loaded');
+        }
+      } catch (err) {
+        console.warn('Paystack flow error:', err);
+        showToast(err.message || 'Payment connection error', false);
+        if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
+        if (elCheckoutBtnText) elCheckoutBtnText.textContent = `Pay R${rMeta.price} with Paystack`;
+      }
+    })();
   }
 
   function completeReservation(bookingData) {
@@ -2753,6 +2783,37 @@
     } catch (e) {}
   }
 
+  async function syncServerReservations() {
+    try {
+      const res = await fetch('/api/reservations');
+      const data = await res.json();
+      if (data.status && Array.isArray(data.reservations)) {
+        let changed = false;
+        data.reservations.forEach((r) => {
+          if (r.row && r.seat) {
+            const row = r.row;
+            const seat = Number(r.seat);
+            ['Cohort 01', 'Cohort 1'].forEach((ck) => {
+              if (TAKEN_SEATS[ck] && TAKEN_SEATS[ck][row]) {
+                if (!TAKEN_SEATS[ck][row].includes(seat)) {
+                  TAKEN_SEATS[ck][row].push(seat);
+                  changed = true;
+                }
+              }
+            });
+          }
+        });
+        if (changed) {
+          render2DSeatGrid();
+          renderMiniRadar();
+          update3DSelectedSeatHighlight();
+        }
+      }
+    } catch (err) {
+      // Offline or network error
+    }
+  }
+
   function initModals() {
     const openSpecs = () => elSpecsModal.classList.add('open');
     const closeSpecs = () => elSpecsModal.classList.remove('open');
@@ -2810,6 +2871,7 @@
     initComparisonSlider();
 
     restoreSavedReservations();
+    syncServerReservations();
     render2DSeatGrid();
     initCohortPillButtons();
     initCinemaThreeJS();

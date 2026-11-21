@@ -1,0 +1,27 @@
+{
+  "name": "1st-step-method-website",
+  "version": "1.0.0",
+  "description": "An interactive, high-performance course landing platform and 3D cinema seat reservation experience co-created by **Jay & Kutloano**.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kutloanno/the-1st-step-method.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Kutloanno/the-1st-step-method/issues"
+  },
+  "homepage": "https://github.com/Kutloanno/the-1st-step-method#readme",
+  "dependencies": {
+    "@paystack/inline-js": "^2.28.2",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0"
+  }
+}

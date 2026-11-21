@@ -1220,8 +1220,13 @@
     }
   </script>
 
-  <!-- Paystack Inline Payment Gateway -->
-  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <!-- Paystack Inline Payment Gateway (@paystack/inline-js) -->
+  <script src="/vendor/paystack-inline.js"></script>
+  <script>
+    if (typeof PaystackPop === 'undefined') {
+      document.write('<script src="https://js.paystack.co/v1/inline.js"><\/script>');
+    }
+  </script>
 
   <!-- Application Logic -->
   <script src="app.js"></script>
