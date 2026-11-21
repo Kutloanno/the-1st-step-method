@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.reservations (
     -- Student Personal Details
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    age INTEGER NOT NULL CHECK (age >= 10 AND age <= 120),
+    age INTEGER NOT NULL CHECK (age >= 18 AND age <= 120),
     cellphone_number TEXT NOT NULL, -- WhatsApp / Mobile Number (Required)
     email TEXT,
     

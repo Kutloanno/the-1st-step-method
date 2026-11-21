@@ -80,8 +80,8 @@ async function createReservation(data) {
   if (!firstName || !lastName) {
     throw new Error('First name and last name are required.');
   }
-  if (!age || isNaN(Number(age))) {
-    throw new Error('A valid age is required.');
+  if (!age || isNaN(Number(age)) || Number(age) < 18) {
+    throw new Error('A valid age is required. Anyone under the age of 18 is not allowed.');
   }
   if (!cellphoneNumber) {
     throw new Error('WhatsApp / cellphone number is required.');

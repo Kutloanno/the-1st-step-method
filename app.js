@@ -207,6 +207,7 @@
   const elStudentName = document.getElementById('student-name');
   const elStudentEmail = document.getElementById('student-email');
   const elStudentPhone = document.getElementById('student-phone');
+  const elStudentAge = document.getElementById('student-age');
   const elBtnPaystackSubmit = document.getElementById('btn-paystack-submit');
   const elCheckoutBtnText = document.getElementById('checkout-btn-text');
   const elTrustGuaranteeText = document.getElementById('trust-guarantee-text');
@@ -1376,10 +1377,13 @@
     });
     cinemaFilmCtx.globalAlpha = 1.0;
 
+    // 3D Cinema Curved Screen Countdown to January 10, 2027
+    drawCinemaCountdown(cinemaFilmCtx, w, h, time);
+
     // Course Title Overlay on Stage Screen
     cinemaFilmCtx.font = '700 13px Inter, sans-serif';
     cinemaFilmCtx.fillStyle = 'rgba(255, 255, 255, 0.42)';
-    cinemaFilmCtx.fillText('THE 1ST STEP METHOD · COHORT 04 · JAY & KUTLOANO', 38, h - 28);
+    cinemaFilmCtx.fillText('THE 1ST STEP METHOD · COHORT 01 · JAY & KUTLOANO', 38, h - 28);
 
     if (cinemaFilmTexture) {
       cinemaFilmTexture.needsUpdate = true;
@@ -1388,6 +1392,154 @@
     if (screenBounceLight) {
       screenBounceLight.intensity = 1.8 * (1.0 + Math.sin(time * 0.003) * 0.08);
     }
+  }
+
+  // Target timestamp: January 10, 2027 00:00:00
+  const COHORT_TARGET_TIMESTAMP = new Date('2027-01-10T00:00:00').getTime();
+
+  function drawCinemaCountdown(ctx, w, h, time) {
+    const now = Date.now();
+    const diff = Math.max(0, COHORT_TARGET_TIMESTAMP - now);
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    const dStr = String(days);
+    const hStr = String(hours).padStart(2, '0');
+    const mStr = String(minutes).padStart(2, '0');
+    const sStr = String(seconds).padStart(2, '0');
+
+    ctx.save();
+
+    // Responsive dimensions on the 1024x485 IMAX canvas
+    const cardW = 670;
+    const cardH = 175;
+    const cardX = (w - cardW) / 2;
+    const cardY = 52;
+
+    // 1. Soft atmospheric glow behind the countdown HUD
+    const glowGrad = ctx.createRadialGradient(w / 2, cardY + cardH / 2, 60, w / 2, cardY + cardH / 2, 360);
+    glowGrad.addColorStop(0, 'rgba(251, 146, 60, 0.22)');
+    glowGrad.addColorStop(0.7, 'rgba(234, 88, 12, 0.08)');
+    glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(cardX - 50, cardY - 40, cardW + 100, cardH + 80);
+
+    // 2. Main Glass HUD Backdrop (Obsidian Glass)
+    const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+    cardGrad.addColorStop(0, 'rgba(16, 6, 7, 0.90)');
+    cardGrad.addColorStop(1, 'rgba(8, 3, 4, 0.96)');
+    ctx.fillStyle = cardGrad;
+    drawRoundedRectPath(ctx, cardX, cardY, cardW, cardH, 16);
+    ctx.fill();
+
+    // 3. Subtle Glowing Border
+    const borderGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+    borderGrad.addColorStop(0, 'rgba(251, 191, 36, 0.7)');
+    borderGrad.addColorStop(0.5, 'rgba(234, 88, 12, 0.35)');
+    borderGrad.addColorStop(1, 'rgba(251, 191, 36, 0.7)');
+    ctx.strokeStyle = borderGrad;
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // 4. Header Bar: Pulsing Live Indicator + Date Tag
+    const pulseAlpha = 0.65 + Math.sin(time * 0.005) * 0.35;
+    ctx.beginPath();
+    ctx.arc(cardX + 28, cardY + 28, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(16, 185, 129, ${pulseAlpha})`;
+    ctx.fill();
+
+    ctx.font = '700 12px Inter, sans-serif';
+    ctx.fillStyle = '#fde68a';
+    ctx.textAlign = 'left';
+    ctx.fillText('COHORT 01 COMMENCES · JANUARY 10, 2027', cardX + 42, cardY + 32);
+
+    ctx.font = '600 11.5px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.textAlign = 'right';
+    ctx.fillText('108 TOTAL SEATS · LIVE ROADMAP', cardX + cardW - 24, cardY + 32);
+
+    // Subtle Divider Line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cardX + 24, cardY + 46);
+    ctx.lineTo(cardX + cardW - 24, cardY + 46);
+    ctx.stroke();
+
+    // 5. Four Distinct Unit Counter Cards
+    const units = [
+      { val: dStr, label: 'DAYS' },
+      { val: hStr, label: 'HOURS' },
+      { val: mStr, label: 'MINUTES' },
+      { val: sStr, label: 'SECONDS' }
+    ];
+
+    const blockW = 124;
+    const blockH = 80;
+    const blockY = cardY + 58;
+    const totalBlocksW = 4 * blockW;
+    const gap = (cardW - 48 - totalBlocksW) / 3;
+
+    units.forEach((u, i) => {
+      const bx = cardX + 24 + i * (blockW + gap);
+
+      // Sub-block glass card
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      drawRoundedRectPath(ctx, bx, blockY, blockW, blockH, 10);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Large Numerals
+      ctx.textAlign = 'center';
+      ctx.font = '800 36px Inter, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(251, 146, 60, 0.85)';
+      ctx.shadowBlur = 12;
+      ctx.fillText(u.val, bx + blockW / 2, blockY + 48);
+      ctx.shadowBlur = 0; // reset
+
+      // Sub-label
+      ctx.font = '700 10px Inter, sans-serif';
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillText(u.label, bx + blockW / 2, blockY + 68);
+
+      // Colon separator between blocks
+      if (i < 3) {
+        const colonX = bx + blockW + gap / 2;
+        const colonAlpha = 0.45 + Math.sin(time * 0.007) * 0.4;
+        ctx.font = '800 24px Inter, sans-serif';
+        ctx.fillStyle = `rgba(253, 230, 138, ${colonAlpha})`;
+        ctx.fillText(':', colonX, blockY + 45);
+      }
+    });
+
+    // 6. Bottom Ribbon
+    ctx.textAlign = 'center';
+    ctx.font = '600 11px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(254, 215, 170, 0.85)';
+    ctx.fillText('⚡ 3D AUDITORIUM VIEW · SECURE YOUR SPOT BEFORE COUNTDOWN REACHES ZERO', cardX + cardW / 2, cardY + cardH - 12);
+
+    ctx.restore();
+  }
+
+  function drawRoundedRectPath(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
   }
 
   function drawTraveler(ctx, x, y, time) {
@@ -2462,9 +2614,11 @@
       const savedName = localStorage.getItem('fsm_student_name');
       const savedEmail = localStorage.getItem('fsm_student_email');
       const savedPhone = localStorage.getItem('fsm_student_phone');
+      const savedAge = localStorage.getItem('fsm_student_age');
       if (savedName && elStudentName && !elStudentName.value) elStudentName.value = savedName;
       if (savedEmail && elStudentEmail && !elStudentEmail.value) elStudentEmail.value = savedEmail;
       if (savedPhone && elStudentPhone && !elStudentPhone.value) elStudentPhone.value = savedPhone;
+      if (savedAge && elStudentAge && !elStudentAge.value) elStudentAge.value = savedAge;
     } catch (e) {}
 
     // Clear validation states
@@ -2491,10 +2645,13 @@
     const nameVal = elStudentName ? elStudentName.value.trim() : '';
     const emailVal = elStudentEmail ? elStudentEmail.value.trim() : '';
     const phoneVal = elStudentPhone ? elStudentPhone.value.trim() : '';
+    const ageVal = elStudentAge ? elStudentAge.value.trim() : '';
 
     const nameGroup = elStudentName ? elStudentName.closest('.checkout-field-group') : null;
     const emailGroup = elStudentEmail ? elStudentEmail.closest('.checkout-field-group') : null;
     const phoneGroup = elStudentPhone ? elStudentPhone.closest('.checkout-field-group') : null;
+    const ageGroup = elStudentAge ? elStudentAge.closest('.checkout-field-group') : null;
+    const ageErrorEl = document.getElementById('age-error');
 
     let hasError = false;
 
@@ -2521,6 +2678,23 @@
       phoneGroup.classList.remove('has-error');
     }
 
+    const ageNum = parseInt(ageVal, 10);
+    if (!ageVal || isNaN(ageNum)) {
+      if (ageErrorEl) ageErrorEl.textContent = 'Please enter your age';
+      if (ageGroup) ageGroup.classList.add('has-error');
+      hasError = true;
+    } else if (ageNum < 18) {
+      if (ageErrorEl) ageErrorEl.textContent = 'You must be 18 or older to reserve a seat. Anyone under 18 is not allowed.';
+      if (ageGroup) ageGroup.classList.add('has-error');
+      hasError = true;
+    } else if (ageNum > 120) {
+      if (ageErrorEl) ageErrorEl.textContent = 'Please enter a valid age';
+      if (ageGroup) ageGroup.classList.add('has-error');
+      hasError = true;
+    } else if (ageGroup) {
+      ageGroup.classList.remove('has-error');
+    }
+
     if (hasError) return;
 
     // Save student details
@@ -2528,6 +2702,7 @@
       localStorage.setItem('fsm_student_name', nameVal);
       localStorage.setItem('fsm_student_email', emailVal);
       if (phoneVal) localStorage.setItem('fsm_student_phone', phoneVal);
+      if (ageVal) localStorage.setItem('fsm_student_age', ageVal);
     } catch (err) {}
 
     const rowLetter = state.selectedRow;
@@ -2545,6 +2720,7 @@
           studentName: nameVal,
           studentEmail: emailVal,
           studentPhone: phoneVal,
+          studentAge: ageNum,
           row: rowLetter,
           seat: seatNum,
           price: 0,
@@ -2569,6 +2745,7 @@
             amount: rMeta.price, // sends price in Rands; server computes priceInRands * 100
             studentName: nameVal,
             studentPhone: phoneVal,
+            studentAge: ageNum,
             row: rowLetter,
             seat: seatNum,
             cohort: state.currentCohort
@@ -2608,6 +2785,7 @@
                 studentName: nameVal,
                 studentEmail: emailVal,
                 studentPhone: phoneVal,
+                studentAge: ageNum,
                 row: rowLetter,
                 seat: seatNum,
                 price: rMeta.price,
@@ -2640,6 +2818,7 @@
                     studentName: nameVal,
                     studentEmail: emailVal,
                     studentPhone: phoneVal,
+                    studentAge: ageNum,
                     row: rowLetter,
                     seat: seatNum,
                     price: rMeta.price,
