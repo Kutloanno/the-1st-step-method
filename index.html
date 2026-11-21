@@ -1043,6 +1043,24 @@
           <span class="checkout-field-error" id="phone-error">Please enter your WhatsApp / mobile number</span>
         </div>
 
+        <div class="checkout-field-group">
+          <label class="checkout-field-label" for="student-age">
+            <span>Age (Years)</span>
+            <span class="field-required">*</span>
+          </label>
+          <input 
+            type="number" 
+            id="student-age" 
+            class="checkout-input" 
+            placeholder="e.g. 21" 
+            min="18" 
+            max="120"
+            required
+          >
+          <span class="checkout-field-hint">Must be 18 or older to join this cohort</span>
+          <span class="checkout-field-error" id="age-error">You must be 18 or older to reserve a seat</span>
+        </div>
+
         <!-- Action Button -->
         <button type="submit" class="paystack-submit-btn" id="btn-paystack-submit">
           <span class="btn-spinner" id="checkout-btn-spinner" aria-hidden="true"></span>

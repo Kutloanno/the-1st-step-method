@@ -121,10 +121,17 @@ app.get(['/api/config', '/config'], (req, res) => {
 // ==========================================================================
 app.post(['/api/paystack/initialize', '/paystack/initialize'], async (req, res) => {
   try {
-    const { email, amount, studentName, studentPhone, row, seat, cohort } = req.body;
+    const { email, amount, studentName, studentPhone, studentAge, row, seat, cohort } = req.body;
 
     if (!email) {
       return res.status(400).json({ status: false, message: 'Student email is required.' });
+    }
+
+    if (studentAge !== undefined && studentAge !== null && studentAge !== '') {
+      const parsedAge = parseInt(studentAge, 10);
+      if (isNaN(parsedAge) || parsedAge < 18) {
+        return res.status(400).json({ status: false, message: 'You must be 18 or older to reserve a seat. Anyone under the age of 18 is not allowed.' });
+      }
     }
 
     // Convert amount in Rands to cents: priceInRands * 100
@@ -135,6 +142,7 @@ app.post(['/api/paystack/initialize', '/paystack/initialize'], async (req, res) 
     const metadata = {
       student_name: studentName || 'Student',
       student_phone: studentPhone || '',
+      student_age: studentAge ? String(studentAge) : '',
       row: row || '',
       seat: seat || '',
       cohort: cohort || 'Cohort 01',
@@ -144,7 +152,8 @@ app.post(['/api/paystack/initialize', '/paystack/initialize'], async (req, res) 
         { display_name: 'Row', variable_name: 'row', value: row || '' },
         { display_name: 'Seat', variable_name: 'seat', value: String(seat || '') },
         { display_name: 'Cohort', variable_name: 'cohort', value: cohort || 'Cohort 01' },
-        { display_name: 'Phone / WhatsApp', variable_name: 'phone', value: studentPhone || 'Not provided' }
+        { display_name: 'Phone / WhatsApp', variable_name: 'phone', value: studentPhone || 'Not provided' },
+        { display_name: 'Age', variable_name: 'student_age', value: studentAge ? String(studentAge) : '18+' }
       ]
     };
 
