@@ -39,6 +39,11 @@ function getStoredReservations() {
   return inMemoryReservations;
 }
 
+let supabaseClient = null;
+try {
+  supabaseClient = require('./supabaseClient');
+} catch (e) {}
+
 function saveReservation(reservation) {
   try {
     const exists = inMemoryReservations.some((r) => r.reference === reservation.reference);
@@ -50,6 +55,31 @@ function saveReservation(reservation) {
     if (!diskExists) {
       list.push({ ...reservation, createdAt: new Date().toISOString() });
       fs.writeFileSync(RESERVATIONS_FILE, JSON.stringify(list, null, 2), 'utf8');
+    }
+
+    // Sync to Supabase if available
+    if (supabaseClient && typeof supabaseClient.createReservation === 'function') {
+      const nameParts = (reservation.studentName || 'Student').trim().split(/\s+/);
+      const firstName = nameParts[0] || 'Student';
+      const lastName = nameParts.slice(1).join(' ') || firstName;
+      const phone = reservation.studentPhone || reservation.phone || reservation.cellphoneNumber || '0000000000';
+
+      supabaseClient.createReservation({
+        firstName,
+        lastName,
+        age: reservation.age || 21,
+        cellphoneNumber: phone,
+        email: reservation.email || reservation.studentEmail,
+        cohort: reservation.cohort || 'Cohort 01',
+        row: reservation.row || 'A',
+        seat: parseInt(reservation.seat, 10) || 1,
+        price: reservation.amount || reservation.price || 0,
+        paymentStatus: reservation.status && reservation.status.includes('FREE') ? 'free_claim' : 'confirmed',
+        paymentReference: reservation.reference,
+        metadata: reservation.metadata || {}
+      }).catch((err) => {
+        console.warn('[Supabase Sync Notice]:', err.message);
+      });
     }
   } catch (e) {
     console.warn('[Storage] File write notice:', e.message);
