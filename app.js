@@ -2566,7 +2566,18 @@
           })
         });
 
-        const initResult = await initResponse.json();
+        let initResult;
+        try {
+          initResult = await initResponse.json();
+        } catch (jsonErr) {
+          const rawText = await initResponse.text().catch(() => '');
+          console.error('[Paystack Init Non-JSON Error]', initResponse.status, rawText);
+          throw new Error(
+            initResponse.status >= 500
+              ? 'Paystack serverless endpoint is updating on Vercel. Please retry in a moment.'
+              : `Server returned HTTP ${initResponse.status}. Please check your connection.`
+          );
+        }
 
         if (!initResult.status || !initResult.data || !initResult.data.access_code) {
           throw new Error(initResult.message || 'Payment initialization failed');

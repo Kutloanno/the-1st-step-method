@@ -1,8 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/vendor/paystack-inline.js", "destination": "/api" },
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
     { "source": "/success", "destination": "/success.html" }
   ]
 }

@@ -9,38 +9,50 @@ const PORT = process.env.PORT || 8080;
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || '';
 const PAYSTACK_PUBLIC_KEY = process.env.PAYSTACK_PUBLIC_KEY || '';
 
-// Data store path for reservations
-const DATA_DIR = path.join(__dirname, 'data');
+// Serverless-safe data store path for reservations
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
+const DATA_DIR = isServerless ? '/tmp' : path.join(__dirname, 'data');
 const RESERVATIONS_FILE = path.join(DATA_DIR, 'reservations.json');
 
-// Ensure data directory and file exist
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-if (!fs.existsSync(RESERVATIONS_FILE)) {
-  fs.writeFileSync(RESERVATIONS_FILE, JSON.stringify([]), 'utf8');
+let inMemoryReservations = [];
+
+// Safe file initialization that will never crash on read-only environments
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(RESERVATIONS_FILE)) {
+    fs.writeFileSync(RESERVATIONS_FILE, JSON.stringify([]), 'utf8');
+  }
+} catch (e) {
+  console.warn('[Storage] Filesystem write not permitted, using in-memory store:', e.message);
 }
 
 function getStoredReservations() {
   try {
-    const raw = fs.readFileSync(RESERVATIONS_FILE, 'utf8');
-    return JSON.parse(raw) || [];
-  } catch (e) {
-    return [];
-  }
+    if (fs.existsSync(RESERVATIONS_FILE)) {
+      const raw = fs.readFileSync(RESERVATIONS_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return inMemoryReservations;
 }
 
 function saveReservation(reservation) {
   try {
-    const list = getStoredReservations();
-    // Check if duplicate reference
-    const exists = list.some((r) => r.reference === reservation.reference);
+    const exists = inMemoryReservations.some((r) => r.reference === reservation.reference);
     if (!exists) {
+      inMemoryReservations.push({ ...reservation, createdAt: new Date().toISOString() });
+    }
+    const list = getStoredReservations();
+    const diskExists = list.some((r) => r.reference === reservation.reference);
+    if (!diskExists) {
       list.push({ ...reservation, createdAt: new Date().toISOString() });
       fs.writeFileSync(RESERVATIONS_FILE, JSON.stringify(list, null, 2), 'utf8');
     }
   } catch (e) {
-    console.error('Error saving reservation:', e);
+    console.warn('[Storage] File write notice:', e.message);
   }
 }
 
@@ -64,7 +76,7 @@ app.get('/vendor/paystack-inline.js', (req, res) => {
 });
 
 // Provide public configuration to the frontend
-app.get('/api/config', (req, res) => {
+app.get(['/api/config', '/config'], (req, res) => {
   res.json({
     paystackPublicKey: PAYSTACK_PUBLIC_KEY || 'pk_test_cb912809e5b2e67df1bbbe04085f1c97034cf5e2',
     currency: 'ZAR',
@@ -77,7 +89,7 @@ app.get('/api/config', (req, res) => {
 // Sends email, currency: "ZAR", and amount in cents (priceInRands * 100)
 // to https://api.paystack.co/transaction/initialize using PAYSTACK_SECRET_KEY
 // ==========================================================================
-app.post('/api/paystack/initialize', async (req, res) => {
+app.post(['/api/paystack/initialize', '/paystack/initialize'], async (req, res) => {
   try {
     const { email, amount, studentName, studentPhone, row, seat, cohort } = req.body;
 
@@ -169,7 +181,7 @@ app.post('/api/paystack/initialize', async (req, res) => {
 // Calls GET https://api.paystack.co/transaction/verify/:reference
 // using PAYSTACK_SECRET_KEY
 // ==========================================================================
-app.get('/api/paystack/verify/:reference', async (req, res) => {
+app.get(['/api/paystack/verify/:reference', '/paystack/verify/:reference'], async (req, res) => {
   try {
     const { reference } = req.params;
 
@@ -240,7 +252,7 @@ app.get('/api/paystack/verify/:reference', async (req, res) => {
 // 3. WEBHOOK ROUTE: POST /api/paystack/webhook
 // Checks Paystack's signature header before marking a student's seat as paid
 // ==========================================================================
-app.post('/api/paystack/webhook', (req, res) => {
+app.post(['/api/paystack/webhook', '/paystack/webhook'], (req, res) => {
   try {
     const signature = req.headers['x-paystack-signature'];
     const hasLiveSecret = PAYSTACK_SECRET_KEY && !PAYSTACK_SECRET_KEY.includes('placeholder');
@@ -295,7 +307,7 @@ app.post('/api/paystack/webhook', (req, res) => {
 });
 
 // Webhook GET health check (returns active status for browser / testing)
-app.get('/api/paystack/webhook', (req, res) => {
+app.get(['/api/paystack/webhook', '/paystack/webhook'], (req, res) => {
   res.json({
     status: true,
     message: 'Paystack webhook endpoint active. Send incoming events via POST with x-paystack-signature header.'
@@ -308,19 +320,31 @@ app.get('/success', (req, res) => {
 });
 
 // Route to get confirmed reservations
-app.get('/api/reservations', (req, res) => {
+app.get(['/api/reservations', '/reservations'], (req, res) => {
   const reservations = getStoredReservations();
   res.json({ status: true, reservations });
 });
 
-// Serve static frontend assets
-app.use(express.static(__dirname, {
-  extensions: ['html', 'htm']
-}));
+// Serve static frontend assets only in local development (Vercel serves them via Edge CDN)
+if (!process.env.VERCEL) {
+  app.use(express.static(__dirname, {
+    extensions: ['html', 'htm']
+  }));
 
-// Fallback to index.html for single-page routing
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  // Fallback to index.html for single-page routing locally
+  app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  });
+}
+
+// Global Express Error Handler ensuring valid JSON responses
+app.use((err, req, res, next) => {
+  console.error('[Express Unhandled Error]:', err);
+  res.status(500).json({
+    status: false,
+    message: err.message || 'Internal Server Error',
+    code: err.code || 'SERVER_ERROR'
+  });
 });
 
 // Export app for Vercel Serverless Function deployment
