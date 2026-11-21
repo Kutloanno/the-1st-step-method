@@ -67,18 +67,26 @@ CREATE INDEX IF NOT EXISTS idx_reservations_created_at ON public.reservations (c
 -- 5. Row Level Security (RLS) Policies
 ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
 
--- Allow public read of reserved seat positions (without exposing private contact details to unauthenticated users)
+-- Allow public read of reserved seat positions
 DROP POLICY IF EXISTS "Public can view booked seats" ON public.reservations;
 CREATE POLICY "Public can view booked seats" 
     ON public.reservations 
     FOR SELECT 
-    USING (payment_status IN ('confirmed', 'free_claim'));
+    USING (payment_status IN ('confirmed', 'free_claim', 'pending'));
 
 -- Allow inserting reservations (via client form or Paystack hook)
 DROP POLICY IF EXISTS "Allow reservation insert" ON public.reservations;
 CREATE POLICY "Allow reservation insert" 
     ON public.reservations 
     FOR INSERT 
+    WITH CHECK (true);
+
+-- Allow updating reservations (transitioning from pending to confirmed)
+DROP POLICY IF EXISTS "Allow reservation update" ON public.reservations;
+CREATE POLICY "Allow reservation update" 
+    ON public.reservations 
+    FOR UPDATE 
+    USING (true) 
     WITH CHECK (true);
 
 -- Allow full management by service role (backend Node.js server)

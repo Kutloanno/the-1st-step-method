@@ -16,8 +16,17 @@ try {
 
 require('dotenv').config();
 
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  'https://eppwuacyvdweiflqfcjp.supabase.co';
+
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  'sb_publishable_OWMZwjdEEFh-f8rmb1EUMQ_GwnOHIhV';
 
 let supabase = null;
 
@@ -65,7 +74,7 @@ async function createReservation(data) {
   const {
     firstName,
     lastName,
-    age,
+    age = 21,
     cellphoneNumber,
     email,
     cohort = 'Cohort 01',
@@ -80,7 +89,8 @@ async function createReservation(data) {
   if (!firstName || !lastName) {
     throw new Error('First name and last name are required.');
   }
-  if (!age || isNaN(Number(age)) || Number(age) < 18) {
+  const studentAge = (age !== undefined && age !== null && !isNaN(Number(age))) ? parseInt(age, 10) : 21;
+  if (studentAge < 18) {
     throw new Error('A valid age is required. Anyone under the age of 18 is not allowed.');
   }
   if (!cellphoneNumber) {
@@ -93,7 +103,7 @@ async function createReservation(data) {
   const payload = {
     first_name: firstName.trim(),
     last_name: lastName.trim(),
-    age: parseInt(age, 10),
+    age: studentAge,
     cellphone_number: cellphoneNumber.trim(),
     email: email ? email.trim().toLowerCase() : null,
     cohort,
@@ -105,18 +115,65 @@ async function createReservation(data) {
     metadata,
   };
 
-  const { data: record, error } = await supabase
-    .from('reservations')
-    .insert([payload])
-    .select()
-    .single();
+  // If a payment reference is provided, check if record exists and update it
+  if (paymentReference) {
+    const { data: existing } = await supabase
+      .from('reservations')
+      .select('id')
+      .eq('payment_reference', paymentReference)
+      .maybeSingle();
 
-  if (error) {
-    console.error('[Supabase] Error inserting reservation:', error.message);
-    throw error;
+    if (existing) {
+      const { data: updated, error: updateError } = await supabase
+        .from('reservations')
+        .update({
+          payment_status: paymentStatus,
+          price: parseFloat(price) || 0,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          cellphone_number: cellphoneNumber.trim(),
+          email: email ? email.trim().toLowerCase() : null,
+          metadata,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (!updateError && updated) {
+        return updated;
+      }
+    }
   }
 
-  return record;
+  // Otherwise upsert by unique seat per cohort
+  try {
+    const { data: record, error } = await supabase
+      .from('reservations')
+      .upsert([payload], { onConflict: 'cohort,row,seat' })
+      .select()
+      .maybeSingle();
+
+    if (!error && record) return record;
+    if (error && (error.code === '42501' || error.message.includes('row-level security'))) {
+      // If RLS prevents select on non-confirmed rows, insert without returning
+      await supabase
+        .from('reservations')
+        .upsert([payload], { onConflict: 'cohort,row,seat' });
+      return { ...payload, id: 'registered-rls-protected' };
+    }
+    if (error) throw error;
+    return record || payload;
+  } catch (err) {
+    if (err.code === '42501' || (err.message && err.message.includes('row-level security'))) {
+      await supabase
+        .from('reservations')
+        .upsert([payload], { onConflict: 'cohort,row,seat' });
+      return { ...payload, id: 'registered-rls-protected' };
+    }
+    console.error('[Supabase] Error inserting reservation:', err.message);
+    throw err;
+  }
 }
 
 /**

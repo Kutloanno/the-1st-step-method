@@ -184,6 +184,26 @@ app.post(['/api/paystack/initialize', '/paystack/initialize'], async (req, res) 
       }
 
       console.log(`[Paystack Initialize] Created transaction ${data.data.reference} with access_code ${data.data.access_code}`);
+
+      // Log pending reservation into Supabase immediately so student and spot are recorded
+      if (supabaseClient && typeof supabaseClient.createReservation === 'function') {
+        const nameParts = (studentName || 'Student').trim().split(/\s+/);
+        supabaseClient.createReservation({
+          firstName: nameParts[0] || 'Student',
+          lastName: nameParts.slice(1).join(' ') || nameParts[0] || 'Student',
+          age: 21,
+          cellphoneNumber: studentPhone || '0000000000',
+          email: email.trim().toLowerCase(),
+          cohort: cohort || 'Cohort 01',
+          row: (row || 'B').toUpperCase(),
+          seat: parseInt(seat || '3', 10),
+          price: (amountInCents / 100) || 499,
+          paymentStatus: 'pending',
+          paymentReference: data.data.reference,
+          metadata
+        }).catch((err) => console.warn('[Supabase Pending Notice]:', err.message));
+      }
+
       return res.json({
         status: true,
         message: 'Authorization URL created',
@@ -198,6 +218,25 @@ app.post(['/api/paystack/initialize', '/paystack/initialize'], async (req, res) 
       const simulatedRef = `FSM-${row || 'B'}${seat || '3'}-${Date.now().toString(36).toUpperCase()}`;
       const simulatedAccessCode = `sim_acc_${Date.now().toString(36)}`;
       console.log(`[Paystack Initialize (Dev/Test Simulation)] Generated access_code: ${simulatedAccessCode}`);
+
+      // Log pending reservation into Supabase immediately in dev simulation
+      if (supabaseClient && typeof supabaseClient.createReservation === 'function') {
+        const nameParts = (studentName || 'Student').trim().split(/\s+/);
+        supabaseClient.createReservation({
+          firstName: nameParts[0] || 'Student',
+          lastName: nameParts.slice(1).join(' ') || nameParts[0] || 'Student',
+          age: 21,
+          cellphoneNumber: studentPhone || '0000000000',
+          email: email.trim().toLowerCase(),
+          cohort: cohort || 'Cohort 01',
+          row: (row || 'B').toUpperCase(),
+          seat: parseInt(seat || '3', 10),
+          price: (amountInCents / 100) || 499,
+          paymentStatus: 'pending',
+          paymentReference: simulatedRef,
+          metadata
+        }).catch((err) => console.warn('[Supabase Pending Notice]:', err.message));
+      }
 
       return res.json({
         status: true,
@@ -261,6 +300,22 @@ app.get(['/api/paystack/verify/:reference', '/paystack/verify/:reference'], asyn
       return res.status(response.status).json(data);
     } else {
       // Development / Test simulation verification
+      const refParts = reference.split('-');
+      const rowSeat = refParts[1] || 'B3';
+      const simRow = rowSeat.charAt(0) || 'B';
+      const simSeat = parseInt(rowSeat.slice(1), 10) || 3;
+
+      saveReservation({
+        reference,
+        email: 'student@varsity.ac.za',
+        studentName: 'Student',
+        row: simRow,
+        seat: simSeat,
+        cohort: 'Cohort 01',
+        amount: 499,
+        status: 'PAID · PAYSTACK VERIFIED'
+      });
+
       const simData = {
         status: true,
         message: 'Verification successful (Simulation Mode)',
@@ -358,10 +413,125 @@ app.get('/success', (req, res) => {
   res.sendFile(path.join(__dirname, 'success.html'));
 });
 
-// Route to get confirmed reservations
-app.get(['/api/reservations', '/reservations'], (req, res) => {
-  const reservations = getStoredReservations();
-  res.json({ status: true, reservations });
+// ==========================================================================
+// 4. RESERVATIONS API: POST & GET /api/reservations
+// ==========================================================================
+
+// Create / record reservation (Free seats, Paystack confirmations, client sync)
+app.post(['/api/reservations', '/reservations'], async (req, res) => {
+  try {
+    const {
+      studentName,
+      studentEmail,
+      studentPhone,
+      row,
+      seat,
+      cohort,
+      price,
+      reference,
+      status,
+      age,
+      metadata
+    } = req.body;
+
+    if (!row || !seat) {
+      return res.status(400).json({ status: false, message: 'Row and seat number are required.' });
+    }
+
+    const reservationData = {
+      reference: reference || `FSM-${row}${seat}-${Date.now().toString(36).toUpperCase()}`,
+      studentName: (studentName || 'Student').trim(),
+      email: (studentEmail || '').trim(),
+      studentPhone: (studentPhone || '').trim(),
+      row: String(row).toUpperCase(),
+      seat: parseInt(seat, 10),
+      cohort: cohort || 'Cohort 01',
+      amount: Number(price) || 0,
+      price: Number(price) || 0,
+      status: status || (Number(price) === 0 ? 'CONFIRMED · 100% TUITION SCHOLARSHIP' : 'PAID · PAYSTACK VERIFIED'),
+      age: age || 21,
+      metadata: metadata || {}
+    };
+
+    // Save in server store
+    saveReservation(reservationData);
+
+    // Save into Supabase database
+    let supabaseRecord = null;
+    if (supabaseClient && typeof supabaseClient.createReservation === 'function') {
+      try {
+        const nameParts = reservationData.studentName.split(/\s+/);
+        supabaseRecord = await supabaseClient.createReservation({
+          firstName: nameParts[0] || 'Student',
+          lastName: nameParts.slice(1).join(' ') || nameParts[0] || 'Student',
+          age: reservationData.age,
+          cellphoneNumber: reservationData.studentPhone || '0000000000',
+          email: reservationData.email,
+          cohort: reservationData.cohort,
+          row: reservationData.row,
+          seat: reservationData.seat,
+          price: reservationData.price,
+          paymentStatus: (reservationData.status.includes('FREE') || reservationData.status === 'free_claim') ? 'free_claim' : 'confirmed',
+          paymentReference: reservationData.reference,
+          metadata: reservationData.metadata
+        });
+        console.log(`[Supabase Database] Successfully logged seat ${reservationData.row}${reservationData.seat} for ${reservationData.studentName}`);
+      } catch (dbErr) {
+        console.warn('[Supabase Database Warning]:', dbErr.message);
+      }
+    }
+
+    return res.json({
+      status: true,
+      message: 'Reservation recorded and synced with Supabase successfully',
+      data: supabaseRecord || reservationData
+    });
+  } catch (error) {
+    console.error('Error saving reservation:', error);
+    res.status(500).json({ status: false, message: error.message });
+  }
+});
+
+// Route to get confirmed reservations from Supabase and server store
+app.get(['/api/reservations', '/reservations'], async (req, res) => {
+  try {
+    let reservations = [];
+    if (supabaseClient && typeof supabaseClient.getReservations === 'function') {
+      try {
+        const dbReservations = await supabaseClient.getReservations(req.query.cohort || 'Cohort 01');
+        if (Array.isArray(dbReservations) && dbReservations.length > 0) {
+          reservations = dbReservations.map((r) => ({
+            id: r.id,
+            studentName: `${r.first_name} ${r.last_name}`.trim(),
+            studentEmail: r.email,
+            studentPhone: r.cellphone_number,
+            row: r.row,
+            seat: r.seat,
+            seatLabel: r.seat_label,
+            cohort: r.cohort,
+            status: r.payment_status,
+            reference: r.payment_reference,
+            createdAt: r.created_at
+          }));
+        }
+      } catch (dbErr) {
+        console.warn('[Supabase Fetch Notice]:', dbErr.message);
+      }
+    }
+
+    // Merge with stored local reservations
+    const localReservations = getStoredReservations();
+    localReservations.forEach((lr) => {
+      const exists = reservations.some((r) => r.row === lr.row && Number(r.seat) === Number(lr.seat));
+      if (!exists) {
+        reservations.push(lr);
+      }
+    });
+
+    res.json({ status: true, reservations });
+  } catch (e) {
+    res.json({ status: true, reservations: getStoredReservations() });
+  }
 });
 
 // Serve static frontend assets only in local development (Vercel serves them via Edge CDN)

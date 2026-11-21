@@ -2870,7 +2870,27 @@
       }
     });
 
-    // 2. Persist reservation to localStorage
+    // 2. Persist reservation to database (Supabase via /api/reservations) and localStorage
+    fetch('/api/reservations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentName,
+        studentEmail: bookingData.studentEmail || '',
+        studentPhone: bookingData.studentPhone || '',
+        row,
+        seat,
+        price,
+        reference,
+        status,
+        cohort: state.currentCohort
+      })
+    }).then(res => res.json()).then(data => {
+      console.log('[Supabase Reservation Synced]:', data);
+    }).catch(err => {
+      console.warn('[Supabase Sync Notice]:', err.message);
+    });
+
     try {
       const reservations = JSON.parse(localStorage.getItem('fsm_confirmed_reservations') || '[]');
       reservations.push({
