@@ -376,10 +376,12 @@ app.get(['/api/paystack/verify/:reference', '/paystack/verify/:reference'], asyn
         });
         console.log(`[Paystack Verify] Verified payment for reference: ${reference}`);
 
-        // Dispatch Welcome Email idempotently
-        handlePaidWelcomeEmailDispatch(data.data, metadata).catch((err) => {
+        // Dispatch Welcome Email idempotently (awaited so serverless container does not exit before send completes)
+        try {
+          await handlePaidWelcomeEmailDispatch(data.data, metadata);
+        } catch (err) {
           console.warn('[Verify Email Dispatch Notice]:', err.message);
-        });
+        }
       }
 
       return res.status(response.status).json(data);
@@ -569,14 +571,19 @@ app.post(['/api/reservations', '/reservations'], async (req, res) => {
       }
     }
 
-    // Send Free Seat Welcome Email via Brevo if tuition is R0 / free scholarship
+    // Send Free Seat Welcome Email via Brevo if tuition is R0 / free scholarship (awaited for serverless reliability)
     if (Number(reservationData.price) === 0 && reservationData.email && brevoService && typeof brevoService.sendFreeSeatEmail === 'function') {
       const seatLabel = reservationData.row && reservationData.seat ? `Spot ${reservationData.row}${reservationData.seat}` : 'Free Student Seat';
-      brevoService.sendFreeSeatEmail({
-        toEmail: reservationData.email,
-        toName: reservationData.studentName || 'Student',
-        seatNumber: seatLabel,
-      }).catch((err) => console.warn('[Brevo Free Seat Email Error]:', err.message));
+      try {
+        const freeEmailResult = await brevoService.sendFreeSeatEmail({
+          toEmail: reservationData.email,
+          toName: reservationData.studentName || 'Student',
+          seatNumber: seatLabel,
+        });
+        console.log(`[Brevo Free Seat Email Dispatch] Result for ${reservationData.email}:`, freeEmailResult);
+      } catch (err) {
+        console.warn('[Brevo Free Seat Email Error]:', err.message);
+      }
     }
 
     return res.json({
