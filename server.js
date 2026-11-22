@@ -572,10 +572,11 @@ app.post(['/api/reservations', '/reservations'], async (req, res) => {
     }
 
     // Send Free Seat Welcome Email via Brevo if tuition is R0 / free scholarship (awaited for serverless reliability)
+    let freeEmailResult = null;
     if (Number(reservationData.price) === 0 && reservationData.email && brevoService && typeof brevoService.sendFreeSeatEmail === 'function') {
       const seatLabel = reservationData.row && reservationData.seat ? `Spot ${reservationData.row}${reservationData.seat}` : 'Free Student Seat';
       try {
-        const freeEmailResult = await brevoService.sendFreeSeatEmail({
+        freeEmailResult = await brevoService.sendFreeSeatEmail({
           toEmail: reservationData.email,
           toName: reservationData.studentName || 'Student',
           seatNumber: seatLabel,
@@ -589,7 +590,8 @@ app.post(['/api/reservations', '/reservations'], async (req, res) => {
     return res.json({
       status: true,
       message: 'Reservation recorded and synced with Supabase successfully',
-      data: supabaseRecord || reservationData
+      data: supabaseRecord || reservationData,
+      emailResult: freeEmailResult
     });
   } catch (error) {
     console.error('Error saving reservation:', error);
