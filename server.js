@@ -44,6 +44,86 @@ try {
   supabaseClient = require('./supabaseClient');
 } catch (e) {}
 
+let brevoService = null;
+try {
+  brevoService = require('./lib/brevo');
+} catch (e) {
+  console.warn('[Brevo Init Notice]:', e.message);
+}
+
+// Idempotency cache for paid welcome emails to prevent duplicates on webhook retries
+const sentWelcomeEmails = new Set();
+
+async function handlePaidWelcomeEmailDispatch(transactionData, metadata = {}) {
+  try {
+    const reference = transactionData.reference || metadata.reference || (transactionData.data && transactionData.data.reference);
+    if (!reference) return;
+
+    if (sentWelcomeEmails.has(reference)) {
+      console.log(`[Brevo Idempotency] Welcome email already dispatched for reference ${reference}. Skipping duplicate.`);
+      return;
+    }
+
+    // Check Supabase if this reservation was already marked as email sent
+    if (supabaseClient && supabaseClient.supabase) {
+      try {
+        const { data: existing } = await supabaseClient.supabase
+          .from('reservations')
+          .select('metadata')
+          .eq('payment_reference', reference)
+          .maybeSingle();
+
+        if (existing && existing.metadata && existing.metadata.welcome_email_sent) {
+          sentWelcomeEmails.add(reference);
+          console.log(`[Brevo Idempotency] Supabase confirms welcome email already sent for ${reference}. Skipping.`);
+          return;
+        }
+      } catch (checkErr) {
+        console.warn('[Brevo Supabase Check Warning]:', checkErr.message);
+      }
+    }
+
+    // Mark in memory immediately to prevent race conditions
+    sentWelcomeEmails.add(reference);
+
+    const customerEmail = (transactionData.customer && transactionData.customer.email) || transactionData.email || metadata.studentEmail || metadata.email;
+    const customerName = metadata.student_name || metadata.studentName || (transactionData.customer && `${transactionData.customer.first_name || ''} ${transactionData.customer.last_name || ''}`.trim()) || 'Student';
+    const seatSpot = metadata.row && metadata.seat ? `Spot ${metadata.row}${metadata.seat}` : (metadata.cohort_spot || 'Cohort 01 Seat');
+
+    if (brevoService && typeof brevoService.sendPaidWelcomeEmail === 'function' && customerEmail) {
+      const emailResult = await brevoService.sendPaidWelcomeEmail({
+        toEmail: customerEmail,
+        toName: customerName,
+        seatNumber: seatSpot,
+        reference: reference,
+      });
+
+      if (emailResult && emailResult.success) {
+        console.log(`[Brevo Paid Welcome Email] Successfully sent to ${customerEmail} for reference ${reference}`);
+      }
+
+      // Record welcome_email_sent flag in Supabase
+      if (supabaseClient && supabaseClient.supabase) {
+        supabaseClient.supabase
+          .from('reservations')
+          .update({
+            metadata: {
+              ...(metadata || {}),
+              welcome_email_sent: true,
+              welcome_email_sent_at: new Date().toISOString()
+            }
+          })
+          .eq('payment_reference', reference)
+          .then(() => console.log(`[Brevo Email Flagged] Supabase recorded welcome_email_sent for ${reference}`))
+          .catch((err) => console.warn('[Supabase Metadata Update Notice]:', err.message));
+      }
+    }
+  } catch (err) {
+    // Graceful error capture: never crash the server or webhook
+    console.error('[Brevo Paid Welcome Email Error]:', err.message || err);
+  }
+}
+
 function saveReservation(reservation) {
   try {
     const exists = inMemoryReservations.some((r) => r.reference === reservation.reference);
@@ -295,6 +375,11 @@ app.get(['/api/paystack/verify/:reference', '/paystack/verify/:reference'], asyn
           channel: data.data.channel
         });
         console.log(`[Paystack Verify] Verified payment for reference: ${reference}`);
+
+        // Dispatch Welcome Email idempotently
+        handlePaidWelcomeEmailDispatch(data.data, metadata).catch((err) => {
+          console.warn('[Verify Email Dispatch Notice]:', err.message);
+        });
       }
 
       return res.status(response.status).json(data);
@@ -346,7 +431,7 @@ app.get(['/api/paystack/verify/:reference', '/paystack/verify/:reference'], asyn
 // 3. WEBHOOK ROUTE: POST /api/paystack/webhook
 // Checks Paystack's signature header before marking a student's seat as paid
 // ==========================================================================
-app.post(['/api/paystack/webhook', '/paystack/webhook'], (req, res) => {
+app.post(['/api/paystack/webhook', '/paystack/webhook'], async (req, res) => {
   try {
     const signature = req.headers['x-paystack-signature'];
     const hasLiveSecret = PAYSTACK_SECRET_KEY && !PAYSTACK_SECRET_KEY.includes('placeholder');
@@ -390,6 +475,9 @@ app.post(['/api/paystack/webhook', '/paystack/webhook'], (req, res) => {
       });
 
       console.log(`[Paystack Webhook] Successfully marked seat ${metadata.row}${metadata.seat} as paid for ${data.customer?.email}`);
+
+      // Dispatch Welcome Email idempotently (never blocks 200 response on failure)
+      await handlePaidWelcomeEmailDispatch(data, metadata);
     }
 
     // Acknowledge receipt to Paystack with 200 OK
@@ -481,6 +569,16 @@ app.post(['/api/reservations', '/reservations'], async (req, res) => {
       }
     }
 
+    // Send Free Seat Welcome Email via Brevo if tuition is R0 / free scholarship
+    if (Number(reservationData.price) === 0 && reservationData.email && brevoService && typeof brevoService.sendFreeSeatEmail === 'function') {
+      const seatLabel = reservationData.row && reservationData.seat ? `Spot ${reservationData.row}${reservationData.seat}` : 'Free Student Seat';
+      brevoService.sendFreeSeatEmail({
+        toEmail: reservationData.email,
+        toName: reservationData.studentName || 'Student',
+        seatNumber: seatLabel,
+      }).catch((err) => console.warn('[Brevo Free Seat Email Error]:', err.message));
+    }
+
     return res.json({
       status: true,
       message: 'Reservation recorded and synced with Supabase successfully',
@@ -531,6 +629,50 @@ app.get(['/api/reservations', '/reservations'], async (req, res) => {
     res.json({ status: true, reservations });
   } catch (e) {
     res.json({ status: true, reservations: getStoredReservations() });
+  }
+});
+
+// ==========================================================================
+// 5. CONTACT & QUESTIONS API: POST /api/contact
+// Connects visitor question form to Brevo transactional email
+// ==========================================================================
+app.post(['/api/contact', '/contact'], async (req, res) => {
+  try {
+    const { name, email, message } = req.body || {};
+
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ status: false, message: 'Please provide a valid email address.' });
+    }
+
+    if (!message || message.trim().length === 0) {
+      return res.status(400).json({ status: false, message: 'Message content cannot be empty.' });
+    }
+
+    if (brevoService && typeof brevoService.sendContactNotificationEmail === 'function') {
+      const emailResult = await brevoService.sendContactNotificationEmail({
+        fromName: (name || 'Website Visitor').trim(),
+        fromEmail: email.trim(),
+        message: message.trim(),
+      });
+
+      return res.json({
+        status: true,
+        message: 'Your question has been sent successfully. Jay & Kutloano will reply within 24 hours.',
+        result: emailResult,
+      });
+    } else {
+      return res.json({
+        status: true,
+        message: 'Message received. We will reply to your email within 24 hours.',
+      });
+    }
+  } catch (error) {
+    console.error('[Contact API Exception]:', error);
+    return res.status(500).json({
+      status: false,
+      message: 'Failed to deliver message. Please try again or email support directly.',
+      error: error.message,
+    });
   }
 });
 

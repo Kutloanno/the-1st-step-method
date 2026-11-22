@@ -2639,6 +2639,25 @@
     if (elBtnPaystackSubmit) elBtnPaystackSubmit.classList.remove('loading');
   }
 
+  async function safeParseResponse(response, defaultMsg) {
+    let rawText = '';
+    try {
+      rawText = await response.text();
+    } catch (e) {
+      throw new Error(defaultMsg || 'Unable to read server response');
+    }
+
+    try {
+      return JSON.parse(rawText);
+    } catch (parseErr) {
+      console.warn('[SafeParseResponse Non-JSON]', response.status, rawText.slice(0, 300));
+      if (response.status >= 500) {
+        throw new Error('Our payment server is currently updating. Please wait a few seconds and try again.');
+      }
+      throw new Error(defaultMsg || `Server responded with status ${response.status}. Please check your connection.`);
+    }
+  }
+
   function handleCheckoutSubmit(e) {
     if (e) e.preventDefault();
 
@@ -2752,18 +2771,7 @@
           })
         });
 
-        let initResult;
-        try {
-          initResult = await initResponse.json();
-        } catch (jsonErr) {
-          const rawText = await initResponse.text().catch(() => '');
-          console.error('[Paystack Init Non-JSON Error]', initResponse.status, rawText);
-          throw new Error(
-            initResponse.status >= 500
-              ? 'Paystack serverless endpoint is updating on Vercel. Please retry in a moment.'
-              : `Server returned HTTP ${initResponse.status}. Please check your connection.`
-          );
-        }
+        const initResult = await safeParseResponse(initResponse, 'Payment initialization failed');
 
         if (!initResult.status || !initResult.data || !initResult.data.access_code) {
           throw new Error(initResult.message || 'Payment initialization failed');
@@ -2779,7 +2787,7 @@
           setTimeout(async () => {
             // Call backend verify route
             const verifyRes = await fetch(`/api/paystack/verify/${encodeURIComponent(fallbackRef)}`);
-            const verifyData = await verifyRes.json();
+            const verifyData = await safeParseResponse(verifyRes, 'Verification failed');
             if (verifyData.status) {
               completeReservation({
                 studentName: nameVal,
@@ -2811,7 +2819,7 @@
               try {
                 // Step 3: Inside onSuccess, send transaction.reference to verify route before confirmation
                 const verifyResponse = await fetch(`/api/paystack/verify/${encodeURIComponent(txRef)}`);
-                const verifyResult = await verifyResponse.json();
+                const verifyResult = await safeParseResponse(verifyResponse, 'Payment verification failed');
 
                 if (verifyResult.status && (!verifyResult.data || verifyResult.data.status === 'success')) {
                   completeReservation({
@@ -2885,7 +2893,7 @@
         status,
         cohort: state.currentCohort
       })
-    }).then(res => res.json()).then(data => {
+    }).then(res => safeParseResponse(res, 'Database sync notice')).then(data => {
       console.log('[Supabase Reservation Synced]:', data);
     }).catch(err => {
       console.warn('[Supabase Sync Notice]:', err.message);
@@ -2965,8 +2973,8 @@
   async function syncServerReservations() {
     try {
       const res = await fetch('/api/reservations');
-      const data = await res.json();
-      if (data.status && Array.isArray(data.reservations)) {
+      const data = await safeParseResponse(res, 'Could not sync reservations');
+      if (data && data.status && Array.isArray(data.reservations)) {
         let changed = false;
         data.reservations.forEach((r) => {
           if (r.row && r.seat) {
@@ -3038,6 +3046,73 @@
     });
   }
 
+  function initContactForm() {
+    const elContactForm = document.getElementById('contact-form');
+    const elContactName = document.getElementById('contact-name');
+    const elContactEmail = document.getElementById('contact-email');
+    const elContactMessage = document.getElementById('contact-message');
+    const elContactBtn = document.getElementById('btn-contact-submit');
+    const elContactBtnText = document.getElementById('contact-btn-text');
+    const elContactStatus = document.getElementById('contact-status-msg');
+
+    if (!elContactForm) return;
+
+    elContactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = elContactName ? elContactName.value.trim() : '';
+      const email = elContactEmail ? elContactEmail.value.trim() : '';
+      const message = elContactMessage ? elContactMessage.value.trim() : '';
+
+      if (!email || !email.includes('@')) {
+        showToast('Please enter a valid email address', false);
+        if (elContactEmail) elContactEmail.focus();
+        return;
+      }
+
+      if (!message) {
+        showToast('Please type your question or message', false);
+        if (elContactMessage) elContactMessage.focus();
+        return;
+      }
+
+      if (elContactBtn) elContactBtn.disabled = true;
+      if (elContactBtnText) elContactBtnText.textContent = 'Sending Message...';
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message })
+        });
+
+        const data = await safeParseResponse(response, 'Failed to send message');
+        if (data.status) {
+          elContactForm.reset();
+          showToast('Message sent! Jay & Kutloano will reply within 24 hours.', true);
+          if (elContactStatus) {
+            elContactStatus.textContent = 'Message sent! We will reply to your email within 24 hours.';
+            elContactStatus.style.display = 'block';
+            elContactStatus.style.color = '#10b981';
+          }
+        } else {
+          throw new Error(data.message || 'Failed to deliver message');
+        }
+      } catch (err) {
+        console.error('[Contact Form Error]:', err);
+        showToast(err.message || 'Error delivering message. Please try again.', false);
+        if (elContactStatus) {
+          elContactStatus.textContent = err.message || 'Failed to send. Please try again.';
+          elContactStatus.style.display = 'block';
+          elContactStatus.style.color = '#ef4444';
+        }
+      } finally {
+        if (elContactBtn) elContactBtn.disabled = false;
+        if (elContactBtnText) elContactBtnText.textContent = 'Send Question to Mentors →';
+      }
+    });
+  }
+
   // ==========================================================================
   // 8. MASTER INITIALIZATION
   // ==========================================================================
@@ -3048,6 +3123,7 @@
     initScrubberDial();
     initFAQAccordion();
     initComparisonSlider();
+    initContactForm();
 
     restoreSavedReservations();
     syncServerReservations();
