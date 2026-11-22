@@ -28,15 +28,19 @@ try {
   console.warn('[Storage] Filesystem write not permitted, using in-memory store:', e.message);
 }
 
+const RESERVATIONS_RESET_AT = process.env.RESERVATIONS_RESET_AT || '2026-11-23T00:00:00.000Z';
+
 function getStoredReservations() {
   try {
     if (fs.existsSync(RESERVATIONS_FILE)) {
       const raw = fs.readFileSync(RESERVATIONS_FILE, 'utf8');
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        return parsed.filter(r => !r.createdAt || new Date(r.createdAt) >= new Date(RESERVATIONS_RESET_AT));
+      }
     }
   } catch (e) {}
-  return inMemoryReservations;
+  return inMemoryReservations.filter(r => !r.createdAt || new Date(r.createdAt) >= new Date(RESERVATIONS_RESET_AT));
 }
 
 let supabaseClient = null;

@@ -176,6 +176,8 @@ async function createReservation(data) {
   }
 }
 
+const RESERVATIONS_RESET_AT = process.env.RESERVATIONS_RESET_AT || '2026-11-23T00:00:00.000Z';
+
 /**
  * Fetch all confirmed or occupied seats for a given cohort.
  * Useful for syncing 2D grid and 3D auditorium availability.
@@ -189,7 +191,8 @@ async function getReservations(cohort = 'Cohort 01') {
     .from('reservations')
     .select('id, first_name, last_name, cellphone_number, email, cohort, row, seat, seat_label, payment_status, payment_reference, created_at')
     .eq('cohort', cohort)
-    .in('payment_status', ['confirmed', 'free_claim']);
+    .in('payment_status', ['confirmed', 'free_claim'])
+    .gte('created_at', RESERVATIONS_RESET_AT);
 
   if (error) {
     console.error('[Supabase] Error fetching reservations:', error.message);
@@ -216,6 +219,7 @@ async function isSeatAvailable(row, seat, cohort = 'Cohort 01') {
     .eq('row', row.toUpperCase())
     .eq('seat', parseInt(seat, 10))
     .in('payment_status', ['confirmed', 'free_claim'])
+    .gte('created_at', RESERVATIONS_RESET_AT)
     .limit(1);
 
   if (error) {

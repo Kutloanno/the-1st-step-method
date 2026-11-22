@@ -2900,13 +2900,13 @@
     });
 
     try {
-      const reservations = JSON.parse(localStorage.getItem('fsm_confirmed_reservations') || '[]');
+      const reservations = JSON.parse(localStorage.getItem('fsm_confirmed_reservations_v2') || '[]');
       reservations.push({
         ...bookingData,
         cohort: state.currentCohort,
         timestamp: new Date().toISOString()
       });
-      localStorage.setItem('fsm_confirmed_reservations', JSON.stringify(reservations));
+      localStorage.setItem('fsm_confirmed_reservations_v2', JSON.stringify(reservations));
     } catch (e) {}
 
     // 3. Reset submit button & close checkout modal
@@ -2953,7 +2953,14 @@
 
   function restoreSavedReservations() {
     try {
-      const saved = JSON.parse(localStorage.getItem('fsm_confirmed_reservations') || '[]');
+      // Clear legacy pre-reset reservations from local storage once
+      if (localStorage.getItem('fsm_spots_reset_all_nov23') !== 'true') {
+        localStorage.removeItem('fsm_confirmed_reservations');
+        localStorage.removeItem('fsm_confirmed_reservations_v2');
+        localStorage.setItem('fsm_spots_reset_all_nov23', 'true');
+      }
+
+      const saved = JSON.parse(localStorage.getItem('fsm_confirmed_reservations_v2') || '[]');
       if (Array.isArray(saved)) {
         saved.forEach((b) => {
           if (b.row && b.seat) {
